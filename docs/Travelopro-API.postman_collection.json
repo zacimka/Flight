@@ -1,0 +1,212 @@
+{
+  "info": {
+    "name": "Travelopro API",
+    "description": "Flight booking platform API collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Test User\", \"email\": \"test@example.com\", \"password\": \"Test123!\"}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/auth/register",
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"test@example.com\", \"password\": \"Test123!\"}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/auth/login",
+              "path": ["api", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Flights",
+      "item": [
+        {
+          "name": "Search",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"origin\": \"NYC\", \"destination\": \"LAX\", \"date\": \"2026-04-01\", \"passengers\": 2}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/flights/search",
+              "path": ["api", "flights", "search"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "item": [
+        {
+          "name": "Create Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"flightData\": {\"airline\": \"AA\", \"flightNumber\": \"123\"}, \"basePrice\": 150, \"markup\": 25}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/bookings",
+              "path": ["api", "bookings"]
+            }
+          }
+        },
+        {
+          "name": "Get My Bookings",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "http://localhost:5000/api/bookings",
+              "path": ["api", "bookings"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Contact",
+      "item": [
+        {
+          "name": "Submit Message",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Jane Doe\", \"email\": \"jane@example.com\", \"message\": \"I have a question about bookings...\"}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/contact",
+              "path": ["api", "contact"]
+            }
+          }
+        },
+        {
+          "name": "Get All Messages (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/contact",
+              "path": ["api", "contact"]
+            }
+          }
+        },
+        {
+          "name": "Mark as Read (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/contact/{{contact_id}}/read",
+              "path": ["api", "contact", "{{contact_id}}", "read"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Set Markup",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"type\": \"percentage\", \"value\": 15}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/admin/markup",
+              "path": ["api", "admin", "markup"]
+            }
+          }
+        },
+        {
+          "name": "Get All Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/admin/bookings",
+              "path": ["api", "admin", "bookings"]
+            }
+          }
+        },
+        {
+          "name": "Get Revenue",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/admin/revenue",
+              "path": ["api", "admin", "revenue"]
+            }
+          }
+        },
+        {
+          "name": "Refund Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/admin/bookings/{{booking_id}}/refund",
+              "path": ["api", "admin", "bookings", "{{booking_id}}", "refund"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "token", "value": "" },
+    { "key": "admin_token", "value": "" },
+    { "key": "contact_id", "value": "" },
+    { "key": "booking_id", "value": "" }
+  ]
+}
