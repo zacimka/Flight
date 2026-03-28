@@ -20,6 +20,9 @@ app.use(rateLimiter);
 // Stripe webhook requires raw body parser
 app.use("/api/webhooks/stripe", express.raw({ type: "application/json" }));
 
+// Status Check
+app.get("/api/status", (req, res) => res.json({ status: "ZamGo Travel API is online", timestamp: new Date() }));
+
 // Routes
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/flights", require("./routes/flights"));
