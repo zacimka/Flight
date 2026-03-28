@@ -1,7 +1,7 @@
 {
-  "name": "travelopro-api",
+  "name": "zamgo-travel-api",
   "version": "1.0.0",
-  "description": "Flight booking backend (Node.js/Express/MongoDB/Stripe)",
+  "description": "ZamGo Travel - Premium Flight Booking Backend (Node.js/Express/MongoDB/Stripe)",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
@@ -13,6 +13,7 @@
     "node": ">=18"
   },
   "dependencies": {
+    "axios": "^1.14.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
@@ -23,8 +24,8 @@
     "mongoose": "^7.4.0",
     "morgan": "^1.10.0",
     "nodemailer": "^6.9.5",
-    "stripe": "^12.15.0",
-    "pdfkit": "^0.14.0"
+    "pdfkit": "^0.14.0",
+    "stripe": "^12.15.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
