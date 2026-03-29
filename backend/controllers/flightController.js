@@ -2,10 +2,12 @@ const { searchFlights } = require('../services/traveloproService');
 const Markup = require('../models/Markup');
 
 const applyMarkup = (price, markup) => {
+  const numericPrice = Number(price) || 0;
+  const markupValue = Number(markup.value) || 0;
   if (markup.type === 'percentage') {
-    return price + price * (markup.value / 100);
+    return numericPrice + numericPrice * (markupValue / 100);
   }
-  return price + markup.value;
+  return numericPrice + markupValue;
 };
 
 const findActiveMarkup = async () => {
@@ -17,6 +19,8 @@ const findActiveMarkup = async () => {
 const getFlights = async (req, res, next) => {
   try {
     const criteria = req.body;
+    console.log(`[POST /api/flights/search] Request Criteria:`, criteria);
+
     const flights = await searchFlights(criteria);
     const markup = await findActiveMarkup();
 
@@ -26,8 +30,10 @@ const getFlights = async (req, res, next) => {
       return { ...f, basePrice, finalPrice };
     });
 
-    res.json({ data: flightsWithMarkup, markup });
+    console.log(`[POST /api/flights/search] Found ${flightsWithMarkup.length} flights.`);
+    res.status(200).json({ data: flightsWithMarkup, markup });
   } catch (err) {
+    console.error(`[POST /api/flights/search] Error details:`, err.message);
     next(err);
   }
 };

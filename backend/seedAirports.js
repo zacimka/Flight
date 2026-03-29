@@ -6,7 +6,7 @@ const dotenv = require("dotenv");
 // Ensure dotenv loads the backend .env if we run this from root or backend
 dotenv.config({ path: path.join(__dirname, ".env") });
 
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
   .catch(err => console.error(err));
 

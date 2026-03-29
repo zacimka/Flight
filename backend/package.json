@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js",
+    "dev": "lsof -ti tcp:5002 | xargs kill -9 2>/dev/null; nodemon app.js",
     "seed": "node seedAirports.js",
     "fetch": "node fetchAirports.js"
   },
@@ -21,13 +21,14 @@
     "express-rate-limit": "^6.7.0",
     "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^7.4.0",
+    "mongoose": "^9.3.3",
     "morgan": "^1.10.0",
     "nodemailer": "^6.9.5",
     "pdfkit": "^0.14.0",
     "stripe": "^12.15.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "chokidar": "^5.0.0",
+    "nodemon": "^3.1.14"
   }
 }

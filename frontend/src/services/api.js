@@ -1,11 +1,19 @@
 import axios from 'axios';
 
-const API = axios.create({ baseURL: '/api' });
+/** Backend mounts all routes under `/api` (see backend/app.js). Accept env as origin-only or full API root. */
+function resolveApiBaseURL() {
+  const raw = import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/$/, '') || '';
+  if (!raw) return '/api';
+  if (raw.endsWith('/api')) return raw;
+  return `${raw}/api`;
+}
+
+const API = axios.create({ baseURL: resolveApiBaseURL() });
 
 export const register = (payload) => API.post('/auth/register', payload);
 export const login = (payload) => API.post('/auth/login', payload);
 export const searchFlights = (payload) => API.post('/flights/search', payload);
-export const searchAirports = (q) => API.get('/airports/search', { params: { q } });
+export const searchAirports = (q) => API.get('/airports', { params: { q } });
 export const createPaymentIntent = (payload) => API.post('/payments/create', payload);
 export const createBooking = (payload, token) => API.post('/bookings', payload, { headers: { Authorization: `Bearer ${token}` } });
 export const confirmBookingPayment = (payload, token) => API.post('/bookings/confirm-payment', payload, { headers: { Authorization: `Bearer ${token}` } });

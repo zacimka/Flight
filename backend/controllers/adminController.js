@@ -72,13 +72,16 @@ const createManualBooking = async (req, res, next) => {
       userId, flightId, basePrice, markup, status,
       airportFrom, airportTo, airline, flightNumber, departureDate, arrivalDate
     } = req.body;
-    const finalPrice = basePrice + (markup || 0);
+    
+    const numericBasePrice = Number(basePrice) || 0;
+    const numericMarkup = Number(markup) || 0;
+    const finalPrice = numericBasePrice + numericMarkup;
 
     const booking = await Booking.create({
       userId,
       flightData: {
-        basePrice,
-        markup,
+        basePrice: numericBasePrice,
+        markup: numericMarkup,
         finalPrice,
         status: status || 'pending',
         flightId,
@@ -91,8 +94,8 @@ const createManualBooking = async (req, res, next) => {
       flightNumber: flightNumber || 'MANUAL-PNR',
       departureDate: departureDate ? new Date(departureDate) : new Date(),
       arrivalDate: arrivalDate ? new Date(arrivalDate) : new Date(),
-      basePrice,
-      markup: markup || 0,
+      basePrice: numericBasePrice,
+      markup: numericMarkup,
       finalPrice,
       status: status || 'pending'
     });

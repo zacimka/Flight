@@ -6,10 +6,7 @@ const connectDB = async () => {
     throw new Error("MONGO_URI is not defined in env");
   }
   try {
-    await mongoose.connect(URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await mongoose.connect(URI);
     console.log("MongoDB connected");
   } catch (error) {
     console.error("MongoDB connection error", error);

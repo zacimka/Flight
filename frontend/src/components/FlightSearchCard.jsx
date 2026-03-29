@@ -48,7 +48,7 @@ const FlightSearchCard = () => {
   const handleSearch = async (e) => {
     e.preventDefault();
     setError('');
-    
+
     // Infant Validation: One infant per adult (lap policy)
     if (criteria.infants > criteria.passengers) {
       setError('Number of infants cannot exceed the number of adults.');
@@ -107,11 +107,10 @@ const FlightSearchCard = () => {
               <button
                 key={tab.id}
                 onClick={() => setTripType(tab.id)}
-                className={`flex-1 px-8 py-5 font-bold text-sm tracking-tight transition-all ${
-                  tripType === tab.id
+                className={`flex-1 px-8 py-5 font-bold text-sm tracking-tight transition-all ${tripType === tab.id
                     ? 'text-blue-600 bg-white border-b-2 border-blue-600'
                     : 'text-gray-400 hover:text-gray-600'
-                }`}
+                  }`}
               >
                 {tab.label}
               </button>
@@ -125,9 +124,9 @@ const FlightSearchCard = () => {
                 {segments.map((segment, index) => (
                   <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 rounded-3xl bg-gray-50/50 border border-gray-100 relative group animate-in slide-in-from-left-4 duration-300">
                     <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-[10px] font-black shadow-lg">
-                       {index + 1}
+                      {index + 1}
                     </div>
-                    
+
                     <AirportAutocomplete
                       label="From"
                       placeholder="Origin"
@@ -149,7 +148,7 @@ const FlightSearchCard = () => {
                         className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-600/5 focus:border-blue-600 transition outline-none font-medium text-sm"
                       />
                       {segments.length > 2 && (
-                        <button 
+                        <button
                           type="button"
                           onClick={() => removeSegment(index)}
                           className="absolute -right-2 -top-2 w-8 h-8 bg-red-50 text-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-sm hover:bg-red-500 hover:text-white"
@@ -160,9 +159,9 @@ const FlightSearchCard = () => {
                     </div>
                   </div>
                 ))}
-                
+
                 {segments.length < 5 && (
-                  <button 
+                  <button
                     type="button"
                     onClick={addSegment}
                     className="w-full py-4 border-2 border-dashed border-gray-200 rounded-3xl text-gray-400 font-bold text-sm hover:border-blue-400 hover:text-blue-600 transition flex items-center justify-center gap-2"
@@ -175,13 +174,13 @@ const FlightSearchCard = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <AirportAutocomplete
                   label="From"
-                  placeholder="NYC, New York"
+                  placeholder="From"
                   value={criteria.origin}
                   onChange={(val) => setCriteria({ ...criteria, origin: val })}
                 />
                 <AirportAutocomplete
                   label="To"
-                  placeholder="LAX, Los Angeles"
+                  placeholder="To"
                   value={criteria.destination}
                   onChange={(val) => setCriteria({ ...criteria, destination: val })}
                 />

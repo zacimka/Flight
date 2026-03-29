@@ -21,12 +21,17 @@ const register = async (req, res, next) => {
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+    console.log(`Login attempt for: ${email}`);
     if (!email || !password) return res.status(400).json({ message: 'email and password required' });
 
     const user = await User.findOne({ email }).select('+password');
-    if (!user) return res.status(401).json({ message: 'Invalid credentials' });
+    if (!user) {
+      console.log(`User not found: ${email}`);
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
 
     const isMatch = await user.matchPassword(password);
+    console.log(`Password match result for ${email}: ${isMatch}`);
     if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
 
     const token = generateToken(user);

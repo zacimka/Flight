@@ -16,12 +16,15 @@
     "react-dom": "^18.3.0",
     "react-router-dom": "^6.18.0"
   },
+  "overrides": {
+    "ts-interface-checker": "^1.0.2"
+  },
   "devDependencies": {
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.19",
-    "postcss": "^8.4.35",
+    "postcss": "8.4.49",
     "tailwindcss": "^3.4.3",
     "vite": "^5.4.0"
   }

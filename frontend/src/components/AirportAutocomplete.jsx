@@ -26,7 +26,8 @@ const AirportAutocomplete = ({ label, placeholder, value, onChange }) => {
   }, []);
 
   useEffect(() => {
-    if (!query || query.length < 2 || !isOpen) {
+    const trimmedQuery = query?.trim();
+    if (!trimmedQuery || trimmedQuery.length < 2 || !isOpen) {
       setResults([]);
       return;
     }
@@ -34,14 +35,16 @@ const AirportAutocomplete = ({ label, placeholder, value, onChange }) => {
     const delayDebounceFn = setTimeout(async () => {
       setLoading(true);
       try {
-        const res = await searchAirports(query);
-        setResults(res.data || []);
+        const res = await searchAirports(trimmedQuery);
+        const list = res.data;
+        setResults(Array.isArray(list) ? list : []);
       } catch (err) {
         console.error('Failed to fetch airports', err);
+        setResults([]);
       } finally {
         setLoading(false);
       }
-    }, 300); // 300ms debounce
+    }, 400); // 400ms debounce for smoother UI
 
     return () => clearTimeout(delayDebounceFn);
   }, [query, isOpen]);
@@ -106,9 +109,11 @@ const AirportAutocomplete = ({ label, placeholder, value, onChange }) => {
           ))}
         </ul>
       )}
-      {isOpen && query.length >= 2 && !loading && results.length === 0 && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-4 text-sm text-gray-500 text-center">
-          No airports found matching "{query}"
+      {isOpen && query.trim().length >= 2 && !loading && results.length === 0 && (
+        <div className="absolute z-20 w-full mt-2 bg-white/95 backdrop-blur-md border border-red-100 rounded-2xl shadow-xl p-6 text-sm text-gray-500 text-center animate-fade-in">
+          <div className="text-2xl mb-2">📍</div>
+          <p className="font-bold text-gray-900">No airports found matching "{query}"</p>
+          <p className="text-xs mt-1">Try searching by city name or IATA code (e.g., LHR, DXB)</p>
         </div>
       )}
     </div>
