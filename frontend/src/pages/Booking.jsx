@@ -19,6 +19,7 @@ const Booking = ({ user }) => {
 
   // Passenger data state
   const [passengers, setPassengers] = useState([]);
+  const [contact, setContact] = useState({ email: user?.email || '', phone: '' });
   const [extras, setExtras] = useState({
     baggage: "standard",
     seatPreference: "any",
@@ -69,6 +70,7 @@ const Booking = ({ user }) => {
         adults: flight.priceBreakdown?.numAdults || 1,
         children: flight.priceBreakdown?.numChildren || 0,
         infants: flight.priceBreakdown?.numInfants || 0,
+        contact
       };
       
       const res = await createBooking(payload, user.token);
@@ -159,6 +161,20 @@ const Booking = ({ user }) => {
                          </div>
                       ))}
                    </div>
+                </section>
+
+                <section className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-8 sm:p-10 mt-8">
+                    <h2 className="text-2xl font-black text-gray-900 mb-8 border-b border-gray-50 pb-6">Primary Contact Details</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                       <div>
+                          <label className="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Email Address</label>
+                          <input required type="email" value={contact.email} onChange={(e) => setContact({...contact, email: e.target.value})} className="w-full px-5 py-4 bg-gray-50 rounded-2xl border-0 focus:ring-4 focus:ring-blue-600/10 font-bold" placeholder="your@email.com" />
+                       </div>
+                       <div>
+                          <label className="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Phone Number</label>
+                          <input required type="tel" value={contact.phone} onChange={(e) => setContact({...contact, phone: e.target.value})} pattern="[+0-9\s-]+" title="Valid phone number formatting required" className="w-full px-5 py-4 bg-gray-50 rounded-2xl border-0 focus:ring-4 focus:ring-blue-600/10 font-bold" placeholder="+1 (555) 000-0000" />
+                       </div>
+                    </div>
                 </section>
 
                 <section className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-8 sm:p-10 mt-8">

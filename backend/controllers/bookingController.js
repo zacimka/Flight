@@ -6,7 +6,7 @@ const { sendTicketEmail, generateTicketPDF } = require('../services/emailService
 const createBookingIntent = async (req, res, next) => {
   try {
     console.log('--- BOOKING ATTEMPT ---');
-    const { flightData, basePrice, passengers, extras, adults, children, infants } = req.body;
+    const { flightData, basePrice, passengers, extras, adults, children, infants, contact } = req.body;
     
     const numericBasePrice = Number(basePrice) || 0;
     
@@ -61,6 +61,7 @@ const createBookingIntent = async (req, res, next) => {
           birthDate: p.birthDate ? new Date(p.birthDate) : undefined
       })),
       extras: extras || { baggage: "standard", seatPreference: "any", meal: "standard" },
+      contact: contact || { email: '', phone: '' },
       pnr,
       ticketNumbers
     };
@@ -119,11 +120,25 @@ const getBookingById = async (req, res, next) => {
 const confirmPayment = async (req, res, next) => {
   try {
     const { paymentIntentId } = req.body;
-    const booking = await Booking.findOne({ paymentIntentId });
+    // Populate userId so we safely capture their email string
+    const booking = await Booking.findOne({ paymentIntentId }).populate('userId', 'name email');
+    
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
 
     booking.status = 'paid';
     await booking.save();
+
+    // Safely attempt to trigger email securely
+    const recipientEmail = booking.contact?.email || booking.userId?.email || req.user?.email;
+    if (recipientEmail) {
+      sendTicketEmail(recipientEmail, booking)
+        .then(() => console.log(`[Email] Ticket dispatched successfully to ${recipientEmail}`))
+        .catch(emailErr => {
+           // Safely handled: Console logs the error, but DOES NOT crash the booking success wrapper!
+           console.error('[Email Error] Failed to send ticket email, but booking was saved:', emailErr.message);
+        });
+    }
+
     res.json({ success: true, data: booking });
   } catch (err) {
     next(err);

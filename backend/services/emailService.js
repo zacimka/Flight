@@ -77,11 +77,24 @@ const sendTicketEmail = async (to, booking) => {
         <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
           <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>PNR:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold; font-size: 1.2em;">${booking.pnr}</td></tr>
           <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Flight:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${booking.airline} ${booking.flightNumber}</td></tr>
-          <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Route:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${booking.airportFrom} → ${booking.airportTo}</td></tr>
+          <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Route:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${booking.airportFrom} &rarr; ${booking.airportTo}</td></tr>
+          <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Departure:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${new Date(booking.departureDate).toLocaleString()}</td></tr>
+          <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Arrival:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${new Date(booking.arrivalDate).toLocaleString()}</td></tr>
           <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Status:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee; text-transform: uppercase; font-weight: bold; color: green;">${booking.status}</td></tr>
           <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Total Price:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee; font-size: 1.2em; color: #2563eb;">$${booking.finalPrice.toFixed(2)}</td></tr>
         </table>
-        <p style="margin-top: 30px;">Your ticket is attached as a PDF.</p>
+        
+        <h3 style="margin-top: 30px; color: #2563eb;">Passenger Information</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+          ${(booking.passengers || []).map((p, i) => `
+            <tr>
+               <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>${i + 1}. ${p.firstName} ${p.lastName}</strong> <span style="font-size: 0.9em; color: #666;">(${p.type})</span></td>
+               <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Passport/ID:</strong> ${p.passportNumber || "Not Provided"}</td>
+            </tr>
+          `).join('')}
+        </table>
+
+        <p style="margin-top: 20px;">Your ticket is attached as a PDF.</p>
         <p>Safe travels!</p>
         <p><strong>The Travelopro Team</strong></p>
       </div>

@@ -26,6 +26,10 @@ const bookingSchema = new mongoose.Schema(
       seatPreference: { type: String, default: "any" },
       meal: { type: String, default: "standard" },
     },
+    contact: {
+      email: { type: String, required: false },
+      phone: { type: String, required: false },
+    },
     pnr: { type: String },
     ticketNumbers: [String],
     airportFrom: { type: String },
