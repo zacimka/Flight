@@ -26,6 +26,11 @@ export const refundBooking = (bookingId, token) => API.post(`/admin/bookings/${b
 export const getAdminStats = (token) => API.get('/admin/stats', { headers: { Authorization: `Bearer ${token}` } });
 export const submitContactMessage = (payload) => API.post('/contact', payload);
 
+// Duffel New API endpoints
+export const duffelSearchFlights = (payload) => API.post('/duffel/search-flights', payload);
+export const getDuffelOffer = (id) => API.get(`/duffel/offer/${id}`);
+export const createDuffelBooking = (payload, token) => API.post('/duffel/create-booking', payload, { headers: { Authorization: `Bearer ${token}` } });
+
 // Function to fetch PDF as blob
 export const getBookingPDF = (id, token) => API.get(`/bookings/${id}/pdf`, { 
   headers: { Authorization: `Bearer ${token}` },

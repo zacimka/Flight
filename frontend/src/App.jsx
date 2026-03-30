@@ -11,6 +11,7 @@ import AdminContacts from "./pages/AdminContacts";
 import AgentPortal from "./pages/AgentPortal";
 import Login from "./pages/Login";
 import About from "./pages/About";
+import DuffelBookingFlow from "./pages/DuffelBookingFlow";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { useAuth } from "./hooks/useAuth";
@@ -42,6 +43,10 @@ function App() {
                 <BookingSuccess user={user} />
               </ProtectedRoute>
             }
+          />
+          <Route
+            path="/duffel"
+            element={<DuffelBookingFlow user={user} />}
           />
           <Route
             path="/dashboard"
