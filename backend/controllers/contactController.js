@@ -9,13 +9,9 @@ const submitContact = async (req, res, next) => {
     }
     const contact = await Contact.create({ name, email, message });
     
-    // Send notification email to admin
-    try {
-      await sendContactNotification(contact);
-    } catch (emailErr) {
-      console.error('Email notification failed:', emailErr.message);
-      // Don't fail the request if email fails
-    }
+    // Send notification email to admin (fire-and-forget to prevent hanging requests)
+    sendContactNotification(contact)
+      .catch(emailErr => console.error('Email notification failed:', emailErr.message));
 
     res.status(201).json({ data: contact, message: 'Thank you! We received your message.' });
   } catch (err) {
