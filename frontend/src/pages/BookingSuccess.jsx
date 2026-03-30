@@ -1,10 +1,42 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { getBookingPDF } from "../services/api";
+import { useState, useEffect } from "react";
+import { getBookingPDF, confirmBookingPayment } from "../services/api";
 
 const BookingSuccess = ({ user }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const booking = location.state?.booking;
+  const [booking, setBooking] = useState(location.state?.booking || null);
+  const [loading, setLoading] = useState(!location.state?.booking);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchRecoveredBooking = async () => {
+      // 1. If we already have booking from React state (navigate flow), don't refetch
+      if (booking) return;
+
+      // 2. Look for Stripe redirect params (return_url flow or Refresh)
+      const searchParams = new URLSearchParams(location.search);
+      const paymentIntentId = searchParams.get('payment_intent');
+
+      if (!paymentIntentId) {
+         setLoading(false);
+         return;
+      }
+
+      try {
+         // Re-confirming acts as a safe fetch since backend finds the existing intent
+         const res = await confirmBookingPayment({ paymentIntentId }, user.token);
+         setBooking(res.data.data);
+      } catch (err) {
+         console.error('Failed to recover booking:', err);
+         setError('We could not retrieve your booking details securely. Please check your email or dashboard.');
+      } finally {
+         setLoading(false);
+      }
+    };
+
+    fetchRecoveredBooking();
+  }, [location.search, booking, user.token]);
 
   const downloadPDF = async () => {
      try {
@@ -32,11 +64,25 @@ const BookingSuccess = ({ user }) => {
      }
   };
 
-  if (!booking) return (
-    <div className="min-h-screen flex items-center justify-center p-12 text-center">
-       <div>
-          <h2 className="text-2xl font-black text-gray-900 mb-2">No Booking Data</h2>
-          <button onClick={() => navigate('/')} className="px-6 py-2 bg-blue-600 text-white rounded-xl">Go Home</button>
+  if (loading) return (
+     <div className="min-h-screen flex items-center justify-center p-12 text-center bg-gray-50">
+        <div className="animate-pulse space-y-4">
+           <div className="w-16 h-16 bg-blue-200 rounded-full mx-auto"></div>
+           <h2 className="text-xl font-bold text-gray-400">Recovering your ticket securely...</h2>
+        </div>
+     </div>
+  );
+
+  if (error || !booking) return (
+    <div className="min-h-screen flex items-center justify-center p-12 text-center bg-gray-50">
+       <div className="bg-white p-10 rounded-[2rem] shadow-xl border border-gray-100 max-w-lg">
+          <div className="text-6xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-black text-gray-900 mb-2">{error || "No Booking Found"}</h2>
+          <p className="text-gray-500 mb-8">If you just paid, please check your email for the E-Ticket or head to your dashboard directly.</p>
+          <div className="flex gap-4 justify-center">
+             <button onClick={() => navigate('/dashboard')} className="px-6 py-3 bg-gray-900 text-white font-bold rounded-xl shadow hover:bg-black">Go to Dashboard</button>
+             <button onClick={() => navigate('/')} className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl shadow hover:bg-blue-700">Home</button>
+          </div>
        </div>
     </div>
   );

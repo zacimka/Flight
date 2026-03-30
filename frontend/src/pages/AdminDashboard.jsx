@@ -151,8 +151,13 @@ const AdminDashboard = ({ user }) => {
                            {bookings.slice(0, 10).map((b) => (
                              <tr key={b._id} className="hover:bg-blue-50/30 transition-colors">
                                 <td className="px-8 py-4">
-                                   <p className="text-sm font-bold text-gray-900">{b.userId?.name || 'Customer'}</p>
+                                   <p className="text-sm font-bold text-gray-900">{b.userId?.name || b.contact?.email || 'Customer'}</p>
                                    <p className="text-[10px] text-gray-400">{b.airportFrom} → {b.airportTo}</p>
+                                   {b.passengers && b.passengers.length > 0 && (
+                                      <p className="text-[9px] text-blue-500 font-bold uppercase mt-1">
+                                         {b.passengers.map(p => `${p.firstName} ${p.lastName}`).join(', ')}
+                                      </p>
+                                   )}
                                 </td>
                                 <td className="px-8 py-4 text-center">
                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
@@ -162,8 +167,8 @@ const AdminDashboard = ({ user }) => {
                                    </span>
                                 </td>
                                 <td className="px-8 py-4 text-right">
-                                   <p className="text-sm font-black text-gray-900">${b.finalPrice.toFixed(2)}</p>
-                                   <p className="text-[10px] text-blue-500 font-bold">+${b.markup.toFixed(2)}</p>
+                                   <p className="text-sm font-black text-gray-900">${(b.finalPrice || 0).toFixed(2)}</p>
+                                   <p className="text-[10px] text-blue-500 font-bold">+${(b.markup || 0).toFixed(2)}</p>
                                 </td>
                                 <td className="px-8 py-4 text-right">
                                    {b.status === 'paid' && (

@@ -1,167 +1,134 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user, logout } = useAuth();
+  const location = useLocation();
+
+  const isActive = (path) => location.pathname === path;
+
+  // Helper for rendering nav links
+  const NavLink = ({ to, label }) => {
+    const active = isActive(to);
+    return (
+      <Link 
+        to={to} 
+        className={`font-semibold text-[15px] pb-1 transition-colors ${
+          active 
+            ? 'text-orange-500 border-b-2 border-orange-500' 
+            : 'text-gray-700 hover:text-orange-500 border-b-2 border-transparent'
+        }`}
+      >
+        {label}
+      </Link>
+    );
+  };
+
+  const ExternalLink = ({ href, label }) => (
+    <a 
+      href={href} 
+      className="font-semibold text-[15px] pb-1 text-gray-700 hover:text-orange-500 border-b-2 border-transparent transition-colors"
+    >
+      {label}
+    </a>
+  );
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 group transition-transform hover:scale-105 active:scale-95 duration-300">
-             <div className="relative">
-                <img 
-                   src="/images/logo.png" 
-                   alt="ZamGo Travel" 
-                   className="h-10 sm:h-12 w-auto object-contain drop-shadow-sm"
-                   onError={(e) => {
-                      e.target.src = "https://cdn-icons-png.flaticon.com/512/725/725946.png"; // Fallback plane icon
-                   }}
-                />
-             </div>
-             <span className="font-black text-xl sm:text-2xl text-slate-800 tracking-tighter uppercase sm:block whitespace-nowrap">
-                ZamGo Travel
-             </span>
-          </Link>
+    <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 m-0">
+      <div className="flex justify-between items-center py-[15px] px-[40px] max-w-7xl mx-auto">
+        
+        {/* Logo */}
+        <Link to="/" className="flex items-center shrink-0">
+           <img 
+              src="/images/logo travel  new 1-01.png" 
+              alt="ZamGo Travel" 
+              className="h-10 md:h-12 lg:h-14 w-auto object-contain"
+              onError={(e) => {
+                 e.target.style.display = 'none';
+              }}
+           />
+        </Link>
 
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center gap-8">
-            <Link
-              to="/"
-              className="text-gray-700 hover:text-blue-600 transition font-medium"
-            >
-              Flights
-            </Link>
-            <Link
-              to="/"
-              className="text-gray-700 hover:text-blue-600 transition font-medium"
-            >
-              Hotels
-            </Link>
-            <Link
-              to="/"
-              className="text-gray-700 hover:text-blue-600 transition font-medium"
-            >
-              Offers
-            </Link>
-            <Link
-              to="/about"
-              className="text-gray-700 hover:text-blue-600 transition font-medium"
-            >
-              About Us
-            </Link>
-            <Link
-              to="/contact"
-              className="text-gray-700 hover:text-blue-600 transition font-medium"
-            >
-              Contact
-            </Link>
-            <Link
-              to="/agent"
-              className="text-gray-700 hover:text-blue-600 transition font-medium px-4 py-2 rounded-lg border border-blue-600"
-            >
-              Agent Portal
-            </Link>
-          </div>
-
-          {/* Auth Buttons */}
-          <div className="flex items-center gap-3">
+        {/* Desktop Menu */}
+        <div className="hidden md:flex items-center gap-[30px]">
+          <NavLink to="/" label="Flights" />
+          <ExternalLink href="#hotels" label="Hotels" />
+          <ExternalLink href="#packages" label="Packages" />
+          <NavLink to="/about" label="About" />
+          <NavLink to="/contact" label="Contact" />
+          
+          {/* Auth & Portal Buttons */}
+          <div className="flex items-center gap-[20px] ml-4 border-l border-gray-200 pl-6">
             {user ? (
               <>
-                <span className="text-sm font-medium text-gray-700 hidden sm:inline">
-                  {user?.user?.name || user?.user?.email}
-                </span>
+                {(user.user?.role === 'admin' || user.user?.role === 'agent') && (
+                  <Link to={user.user.role === 'admin' ? '/admin' : '/agent'} className="text-orange-500 font-bold hover:text-orange-600 transition">
+                    {user.user.role === 'admin' ? 'Admin Hub' : 'Agent Portal'}
+                  </Link>
+                )}
+                {user.user?.role === 'user' && (
+                  <Link to="/dashboard" className="text-orange-500 font-bold hover:text-orange-600 transition">My Trips</Link>
+                )}
                 <button
                   onClick={logout}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                  className="px-4 py-2 text-sm font-bold text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition"
                 >
                   Logout
                 </button>
               </>
             ) : (
               <>
-                <Link
-                  to="/login"
-                  className="px-4 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition hidden sm:block"
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/login"
-                  className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg hover:shadow-lg transition"
-                >
-                  Sign up
-                </Link>
+                <Link to="/login" className="text-gray-700 font-bold hover:text-orange-500 transition">Login</Link>
+                <Link to="/login" className="px-5 py-2 text-sm font-bold text-white bg-orange-500 rounded hover:bg-orange-600 transition">Sign up</Link>
               </>
             )}
           </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2 text-gray-700"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
-          </button>
         </div>
 
-        {/* Mobile Menu */}
-        {isOpen && (
-          <div className="md:hidden pb-4 space-y-2">
-            <Link
-              to="/"
-              className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-            >
-              Flights
-            </Link>
-            <Link
-              to="/"
-              className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-            >
-              Hotels
-            </Link>
-            <Link
-              to="/"
-              className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-            >
-              Offers
-            </Link>
-            <Link
-              to="/about"
-              className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-            >
-              About Us
-            </Link>
-            <Link
-              to="/contact"
-              className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-            >
-              Contact
-            </Link>
-            <Link
-              to="/agent"
-              className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-            >
-              Agent Portal
-            </Link>
-          </div>
-        )}
+        {/* Mobile Menu Button */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="md:hidden p-2 text-gray-700 hover:text-orange-500"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
+          </svg>
+        </button>
       </div>
+
+      {/* Mobile Menu */}
+      {isOpen && (
+        <div className="md:hidden bg-white border-b border-gray-100 px-4 py-4 space-y-3 shadow-lg">
+          <Link to="/" className="block text-gray-700 font-bold hover:text-orange-500">Flights</Link>
+          <a href="#hotels" className="block text-gray-700 font-bold hover:text-orange-500">Hotels</a>
+          <a href="#packages" className="block text-gray-700 font-bold hover:text-orange-500">Packages</a>
+          <Link to="/about" className="block text-gray-700 font-bold hover:text-orange-500">About</Link>
+          <Link to="/contact" className="block text-gray-700 font-bold hover:text-orange-500">Contact</Link>
+          
+          <div className="pt-4 border-t border-gray-100 flex flex-col gap-3">
+            {user ? (
+              <>
+                {(user.user?.role === 'admin' || user.user?.role === 'agent') && (
+                  <Link to={user.user.role === 'admin' ? '/admin' : '/agent'} className="text-orange-500 font-bold">
+                    {user.user.role === 'admin' ? 'Admin Hub' : 'Agent Portal'}
+                  </Link>
+                )}
+                {user.user?.role === 'user' && (
+                  <Link to="/dashboard" className="text-orange-500 font-bold">My Trips</Link>
+                )}
+                <button onClick={logout} className="w-full text-left font-bold text-gray-700">Logout</button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="font-bold text-gray-700">Login</Link>
+                <Link to="/login" className="inline-block px-4 py-2 bg-orange-500 text-white font-bold rounded text-center">Sign up</Link>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
 };

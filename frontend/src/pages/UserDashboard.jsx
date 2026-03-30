@@ -112,9 +112,28 @@ const UserDashboard = ({ user }) => {
                      </div>
                      <div>
                         <p className="text-[10px] font-black text-gray-400 uppercase mb-1 underline decoration-blue-500/30">Price Paid</p>
-                        <p className="text-sm font-black text-blue-600">${b.finalPrice.toFixed(2)}</p>
+                        <p className="text-sm font-black text-blue-600">${(b.finalPrice || 0).toFixed(2)}</p>
                      </div>
                   </div>
+
+                  {b.passengers && b.passengers.length > 0 && (
+                     <div className="mt-8 pt-6 border-t border-gray-100">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Passenger Manifest</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                           {b.passengers.map((p, pIdx) => (
+                              <div key={pIdx} className="flex items-center gap-3 bg-gray-50/50 p-3 rounded-xl border border-gray-100">
+                                 <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-black uppercase">
+                                    {p.type && p.type[0] ? p.type[0] : 'P'}
+                                 </div>
+                                 <div>
+                                    <p className="text-sm font-black text-gray-900">{p.firstName} {p.lastName}</p>
+                                    <p className="text-[10px] font-bold text-gray-500">ID: {p.passportNumber || 'N/A'}</p>
+                                 </div>
+                              </div>
+                           ))}
+                        </div>
+                     </div>
+                  )}
                 </div>
                 
                 {/* Right Side: Actions */}

@@ -54,7 +54,7 @@ function App() {
           <Route
             path="/admin"
             element={
-              <ProtectedRoute user={user}>
+              <ProtectedRoute user={user} requireAdmin={true}>
                 <AdminDashboard user={user} />
               </ProtectedRoute>
             }
@@ -62,7 +62,7 @@ function App() {
           <Route
             path="/admin/contacts"
             element={
-              <ProtectedRoute user={user}>
+              <ProtectedRoute user={user} requireAdmin={true}>
                 <AdminContacts user={user} />
               </ProtectedRoute>
             }
@@ -70,7 +70,7 @@ function App() {
           <Route
             path="/agent"
             element={
-              <ProtectedRoute user={user}>
+              <ProtectedRoute user={user} requireAdmin={true}>
                 <AgentPortal user={user} />
               </ProtectedRoute>
             }

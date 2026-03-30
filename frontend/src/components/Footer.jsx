@@ -8,7 +8,15 @@ function Footer() {
 
         {/* Logo / Brand */}
         <div className="flex-1 min-w-[280px]">
-          <h2 className="text-3xl font-black tracking-tighter mb-4 text-blue-500">ZamGo Travel</h2>
+          <Link to="/">
+             <div className="bg-white inline-block rounded-2xl p-2 mb-6 shadow-md">
+                <img 
+                   src="/images/logo travel  new 1-01.png" 
+                   alt="ZamGo Travel Logo" 
+                   className="h-14 sm:h-16 md:h-20 w-auto object-contain"
+                />
+             </div>
+          </Link>
           <p className="text-slate-400 font-medium max-w-sm leading-relaxed">
             Experience the world without boundaries. Book flights globally with our advanced booking engine, best price guarantees, and premium support.
           </p>
@@ -24,9 +32,10 @@ function Footer() {
           <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-6">Explore</h4>
           <ul className="space-y-4 font-bold text-slate-300">
             <li><Link to="/" className="hover:text-blue-500 transition">Flight Search</Link></li>
-            <li><Link to="/results" className="hover:text-blue-500 transition">Featured Routes</Link></li>
-            <li><Link to="/dashboard" className="hover:text-blue-500 transition">My Bookings</Link></li>
-            <li><Link to="/agent" className="hover:text-blue-500 transition">Agent Portal</Link></li>
+            <li><a href="#hotels" className="hover:text-blue-500 transition">Hotels & Resorts</a></li>
+            <li><a href="#packages" className="hover:text-blue-500 transition">Holiday Packages</a></li>
+            <li><a href="#cars" className="hover:text-blue-500 transition">Car Rentals</a></li>
+            <li><a href="#cruises" className="hover:text-blue-500 transition">Cruises & Tours</a></li>
             <li><Link to="/about" className="hover:text-blue-500 transition">About ZamGo Travel</Link></li>
           </ul>
         </div>

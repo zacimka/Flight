@@ -216,7 +216,7 @@ const Booking = ({ user }) => {
                 <Elements stripe={stripePromise} options={{ clientSecret }}>
                   <CheckoutForm 
                     clientSecret={clientSecret} 
-                    amount={Math.round(flight.finalPrice * 100)}
+                    amount={Math.round((flight.finalPrice || flight.basePrice || flight.price || 0) * 100)}
                     onPaymentSuccess={onPaymentSuccess}
                     onPaymentError={(msg) => setStatus(`❌ Error: ${msg}`)}
                   />
@@ -263,7 +263,7 @@ const Booking = ({ user }) => {
                  </div>
                  <div className="pt-6 border-t border-white/10 space-y-4">
                     <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Total Investment</p>
-                    <p className="text-5xl font-black text-blue-400 tracking-tighter">${flight.finalPrice.toFixed(2)}</p>
+                    <p className="text-5xl font-black text-blue-400 tracking-tighter">${(flight.finalPrice || flight.basePrice || flight.price || 0).toFixed(2)}</p>
                  </div>
               </div>
            </div>
