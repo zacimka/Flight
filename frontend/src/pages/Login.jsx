@@ -18,8 +18,17 @@ const Login = ({ onLogin }) => {
     try {
       const payload = mode === 'login' ? { email, password } : { name, email, password };
       const resp = mode === 'login' ? await login(payload) : await register(payload);
-      onLogin(resp.data.data);
-      navigate('/');
+      const userData = resp.data.data;
+      onLogin(userData);
+      
+      // Route based on user role
+      if (userData.user.role === 'admin') {
+        navigate('/admin');
+      } else if (userData.user.role === 'agent') {
+        navigate('/agent');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Authentication failed. Please try again.');
     } finally {
