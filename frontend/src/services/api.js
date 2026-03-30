@@ -24,6 +24,7 @@ export const getRevenue = (token) => API.get('/admin/revenue', { headers: { Auth
 export const setMarkup = (payload, token) => API.post('/admin/markup', payload, { headers: { Authorization: `Bearer ${token}` } });
 export const refundBooking = (bookingId, token) => API.post(`/admin/bookings/${bookingId}/refund`, {}, { headers: { Authorization: `Bearer ${token}` } });
 export const getAdminStats = (token) => API.get('/admin/stats', { headers: { Authorization: `Bearer ${token}` } });
+export const submitContactMessage = (payload) => API.post('/contact', payload);
 
 // Function to fetch PDF as blob
 export const getBookingPDF = (id, token) => API.get(`/bookings/${id}/pdf`, { 

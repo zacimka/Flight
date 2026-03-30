@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axios from 'axios';
+import { submitContactMessage } from '../services/api';
 
 const Contact = () => {
   const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
@@ -20,13 +20,12 @@ const Contact = () => {
 
     setLoading(true);
     try {
-      // Assuming /api/contact endpoint handles this
-      const res = await axios.post('/api/contact', formData);
-      setStatus({ type: 'success', msg: res.data.message || 'Message sent! Our team will contact you soon.' });
+      const res = await submitContactMessage(formData);
+      setStatus({ type: 'success', msg: res?.data?.message || 'Message sent! Our team will contact you soon.' });
       setFormData({ name: '', email: '', subject: '', message: '' });
     } catch (err) {
       console.error(err);
-      setStatus({ type: 'error', msg: err.response?.data?.message || 'Failed to send message. Please try again.' });
+      setStatus({ type: 'error', msg: err?.response?.data?.message || 'Failed to send message. Please try again.' });
     } finally {
       setLoading(false);
       setTimeout(() => setStatus({ type: '', msg: '' }), 5000);
