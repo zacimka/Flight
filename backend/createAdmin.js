@@ -4,13 +4,10 @@ const User = require('./models/User');
 
 const createAdmin = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    });
+    await mongoose.connect(process.env.MONGO_URI);
 
-    const email = process.env.EMAIL_USER;
-    const password = process.env.EMAIL_PASS;
+    const email = process.argv[2] || process.env.EMAIL_USER;
+    const password = process.argv[3] || process.env.EMAIL_PASS;
 
     if (!email || !password) {
       console.log('Error: EMAIL_USER or EMAIL_PASS not found in .env');
