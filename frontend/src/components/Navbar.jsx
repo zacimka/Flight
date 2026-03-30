@@ -1,10 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
 
-const Navbar = () => {
+const Navbar = ({ user, logout }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { user, logout } = useAuth();
   const location = useLocation();
 
   const isActive = (path) => location.pathname === path;
