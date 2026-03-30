@@ -5,6 +5,8 @@ import {
   getRevenue,
   setMarkup,
   refundBooking,
+  getAdminStats,
+  updateBookingStatus
 } from "../services/api";
 
 const AdminDashboard = ({ user }) => {
@@ -19,10 +21,12 @@ const AdminDashboard = ({ user }) => {
       setLoading(true);
       const [bookingsRes, statsRes] = await Promise.all([
         getAllBookingsAdmin(user.token),
-        axios.get("/api/admin/stats", { headers: { Authorization: `Bearer ${user.token}` } })
+        getAdminStats(user.token)
       ]);
-      setBookings(bookingsRes.data.data);
-      setStats(statsRes.data.data);
+      
+      // Admin should see latest bookings
+      setBookings(bookingsRes?.data?.data || []);
+      setStats(statsRes?.data?.data || null);
     } catch (err) {
       console.error(err);
     } finally {
@@ -54,6 +58,17 @@ const AdminDashboard = ({ user }) => {
     }
   };
 
+  const handleUpdateStatus = async (id, newStatus) => {
+    try {
+      await updateBookingStatus(id, { status: newStatus }, user.token);
+      setBookings(bookings.map(b => b._id === id ? { ...b, status: newStatus } : b));
+      loadData(); // Refresh analytics stats visually too
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update status");
+    }
+  };
+
   return (
     <main className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
@@ -76,6 +91,13 @@ const AdminDashboard = ({ user }) => {
                    className={`px-6 py-2 rounded-xl text-sm font-black transition ${activeTab === 'settings' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
                  >
                    Settings
+                 </button>
+                 <button 
+                   onClick={loadData}
+                   className="ml-2 px-4 py-2 rounded-xl text-sm font-black text-white bg-blue-600 hover:bg-blue-700 transition flex items-center gap-2 shadow-sm"
+                   title="Refresh Data"
+                 >
+                   ↻ Refresh
                  </button>
               </div>
            </div>
@@ -148,7 +170,7 @@ const AdminDashboard = ({ user }) => {
                            </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
-                           {bookings.slice(0, 10).map((b) => (
+                           {bookings.slice(0, 100).map((b) => (
                              <tr key={b._id} className="hover:bg-blue-50/30 transition-colors">
                                 <td className="px-8 py-4">
                                    <p className="text-sm font-bold text-gray-900">{b.userId?.name || b.contact?.email || 'Customer'}</p>
@@ -160,11 +182,20 @@ const AdminDashboard = ({ user }) => {
                                    )}
                                 </td>
                                 <td className="px-8 py-4 text-center">
-                                   <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                                     b.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-                                   }`}>
-                                     {b.status}
-                                   </span>
+                                   <select 
+                                     value={b.status}
+                                     onChange={(e) => handleUpdateStatus(b._id, e.target.value)}
+                                     className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border-0 focus:ring-0 cursor-pointer ${
+                                       b.status === 'paid' ? 'bg-green-100 text-green-700' : 
+                                       b.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                       'bg-red-100 text-red-700'
+                                     }`}
+                                   >
+                                     <option value="pending">Pending</option>
+                                     <option value="paid">Paid</option>
+                                     <option value="cancelled">Cancelled</option>
+                                     <option value="refunded">Refunded</option>
+                                   </select>
                                 </td>
                                 <td className="px-8 py-4 text-right">
                                    <p className="text-sm font-black text-gray-900">${(b.finalPrice || 0).toFixed(2)}</p>
