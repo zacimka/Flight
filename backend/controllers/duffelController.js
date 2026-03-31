@@ -267,6 +267,17 @@ const createAirlineCredit = async (req, res, next) => {
   }
 };
 
+// 8. DUFFEL UI COMPONENT CLIENT KEY (For DuffelCardForm / 3DS)
+const generateClientKey = async (req, res, next) => {
+  try {
+    const response = await duffel.identity.componentClientKeys.create({});
+    res.json({ data: { client_key: response.data.component_client_key } });
+  } catch (error) {
+    console.error('Duffel Component Key Error:', error.message);
+    res.status(500).json({ message: 'Failed to generate Duffel Component Client Key', details: error.errors || error.message });
+  }
+};
+
 module.exports = { 
   getAirports, 
   searchFlights, 
@@ -274,5 +285,6 @@ module.exports = {
   createBooking, 
   getAirlineCredits, 
   getAirlineCredit, 
-  createAirlineCredit 
+  createAirlineCredit,
+  generateClientKey
 };

@@ -1,17 +1,19 @@
 const express = require('express');
 const { protect } = require('../middlewares/auth');
-const { 
-  getAirports, 
+const {  
+  getAirports,
   searchFlights, 
   getOffer, 
   createBooking,
   getAirlineCredits,
   getAirlineCredit,
-  createAirlineCredit
+  createAirlineCredit,
+  generateClientKey
 } = require('../controllers/duffelController');
 
 const router = express.Router();
 
+router.get('/client-key', generateClientKey);
 router.get('/airports', getAirports);
 router.post('/search-flights', searchFlights);
 router.get('/offer/:id', getOffer);

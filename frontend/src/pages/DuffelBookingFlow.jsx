@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { duffelSearchFlights, getDuffelOffer, createDuffelBooking } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import DuffelPaymentIntegration from '../components/DuffelPaymentIntegration';
 
 const DuffelBookingFlow = ({ user }) => {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ const DuffelBookingFlow = ({ user }) => {
 
   // Offers State
   const [offers, setOffers] = useState([]);
-  const [requestMeta, setRequestMeta] = useState(null); // holds offer_request_id and passenger types mapped from API
+  const [requestMeta, setRequestMeta] = useState(null); 
   
   // Selected Offer State
   const [selectedOffer, setSelectedOffer] = useState(null);
@@ -53,7 +54,7 @@ const DuffelBookingFlow = ({ user }) => {
       setOffers(data.offers || []);
       setRequestMeta({
         offer_request_id: data.offer_request_id,
-        passengers: data.passengers // This specifically contains the Duffel IDs { id, type } we NEED to map!
+        passengers: data.passengers 
       });
       
       setStep('SELECT_OFFER');
@@ -73,7 +74,6 @@ const DuffelBookingFlow = ({ user }) => {
       const refreshedOffer = res.data.data;
       setSelectedOffer(refreshedOffer);
 
-      // Pre-build passenger detailing array based on Duffel's internal passenger IDs
       const mappedForm = refreshedOffer.passengers.map((p) => ({
         id: p.id,
         type: p.type,
@@ -95,9 +95,8 @@ const DuffelBookingFlow = ({ user }) => {
     }
   };
 
-  // Step 3: Finalize Booking Request
-  const createOrder = async (e) => {
-    e.preventDefault();
+  // Step 3: Finalize Booking Request with Payments
+  const createOrder = async (paymentData) => {
     if (!user) {
       return setError("You must be securely logged in to utilize Duffel vendor booking.");
     }
@@ -109,16 +108,17 @@ const DuffelBookingFlow = ({ user }) => {
         offer_id: selectedOffer.offer_id,
         total_amount: selectedOffer.total_amount,
         total_currency: selectedOffer.total_currency,
-        passengers: passengerDetails
+        passengers: passengerDetails,
+        payments: [paymentData] // Passing native Duffel Payment shape from components
       };
 
       const res = await createDuffelBooking(payload, user.token);
       alert(`Booking Successful! Ref: ${res.data.data.booking_reference}`);
-      navigate('/dashboard'); // Direct to trips portal
+      navigate('/dashboard'); 
       
     } catch (err) {
        console.error(err);
-       setError(err.response?.data?.debug || err.response?.data?.details || err.message || 'Failed to create Duffel order');
+       setError(err.response?.data?.debug || err.response?.data?.details || err.message || 'Failed to create Duffel order. Please double check passenger identity matching and valid funds availability.');
     } finally {
        setLoading(false);
     }
@@ -128,7 +128,6 @@ const DuffelBookingFlow = ({ user }) => {
     <main className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto space-y-8">
         
-        {/* Header UI */}
         <div className="text-center">
            <h1 className="text-4xl font-black text-gray-900 mb-2">Live Duffel Booking Agent</h1>
            <p className="text-gray-500 font-medium">Direct airline inventory. Real-time pricing.</p>
@@ -140,7 +139,6 @@ const DuffelBookingFlow = ({ user }) => {
           </div>
         )}
 
-        {/* STEP 1: Search Form */}
         {step === 'SEARCH' && (
           <form onSubmit={fetchOffers} className="bg-white p-8 rounded-[2rem] shadow-xl border border-gray-100 animate-in fade-in transition duration-500">
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -179,7 +177,6 @@ const DuffelBookingFlow = ({ user }) => {
           </form>
         )}
 
-        {/* STEP 2: Offers Board */}
         {step === 'SELECT_OFFER' && (
           <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
              <div className="flex justify-between items-center mb-4">
@@ -222,13 +219,12 @@ const DuffelBookingFlow = ({ user }) => {
           </div>
         )}
 
-        {/* STEP 3: Ensure Passengers */}
         {step === 'PASSENGER_DETAILS' && (
-          <form onSubmit={createOrder} className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-2xl border-t-8 border-indigo-600 animate-in slide-in-from-bottom-8 duration-700">
+          <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-2xl border-t-8 border-indigo-600 animate-in slide-in-from-bottom-8 duration-700">
              <div className="flex justify-between items-center mb-8 pb-6 border-b border-gray-100">
                 <div>
-                   <h2 className="text-2xl font-black text-gray-900">Passenger Manifest</h2>
-                   <p className="text-sm font-medium text-gray-500">Provide legal identification matching passports perfectly.</p>
+                   <h2 className="text-2xl font-black text-gray-900">Passenger & Payment Manifest</h2>
+                   <p className="text-sm font-medium text-gray-500">Provide legal identities and valid payment via 3DS.</p>
                 </div>
                 <div className="text-right">
                    <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600 mb-1">Selected Price</p>
@@ -270,7 +266,6 @@ const DuffelBookingFlow = ({ user }) => {
                            </select>
                         </div>
                      </div>
-                     {/* Identity Contact fields required by Duffel */}
                      {idx === 0 && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-6 rounded-2xl mt-4">
                             <div>
@@ -287,16 +282,29 @@ const DuffelBookingFlow = ({ user }) => {
                 ))}
              </div>
 
-             <div className="mt-12 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-gray-100 pt-8">
-                <button type="button" onClick={() => setStep('SELECT_OFFER')} className="text-gray-400 font-bold hover:text-gray-900 transition">← Back to Offers</button>
-                <div className="text-center md:text-right">
-                   {!user && <p className="text-sm font-black text-red-500 mb-2">You must log in to finalize your booking order.</p>}
-                   <button type="submit" disabled={loading || !user} className="w-full md:w-auto px-12 py-5 bg-indigo-600 text-white font-black text-lg rounded-2xl hover:bg-indigo-700 hover:-translate-y-1 transform transition shadow-xl disabled:opacity-50 disabled:cursor-not-allowed">
-                      {loading ? 'Fulfilling Ticket Order...' : 'Confirm & Purchase Hold'}
-                   </button>
-                </div>
+             <div className="mt-12 pt-8 space-y-6">
+                <hr className="border-gray-100 pb-4" />
+                <h3 className="text-xl font-black text-gray-900 border-l-4 border-indigo-600 pl-4 py-1 flex items-center gap-2">
+                   Payment Gateway
+                </h3>
+                {!user ? (
+                   <p className="text-sm font-black text-red-500 bg-red-50 p-4 rounded-lg inline-block">You must log in to finalize your booking order.</p>
+                ) : (
+                   <DuffelPaymentIntegration 
+                      offerId={selectedOffer?.offer_id}
+                      totalAmount={selectedOffer?.total_amount}
+                      totalCurrency={selectedOffer?.total_currency}
+                      onPaymentReady={createOrder}
+                      loadingBooking={loading}
+                      errorBooking={error}
+                   />
+                )}
              </div>
-          </form>
+
+             <div className="mt-8 flex items-center justify-between border-t border-gray-100 pt-8">
+                <button type="button" onClick={() => setStep('SELECT_OFFER')} className="text-gray-400 font-bold hover:text-gray-900 transition">← Amend Order Status</button>
+             </div>
+          </div>
         )}
       </div>
     </main>
