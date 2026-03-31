@@ -1,9 +1,9 @@
 const express = require('express');
 const { protect } = require('../middlewares/auth');
-const {  
+const {
   getAirports,
-  searchFlights, 
-  getOffer, 
+  searchFlights,
+  getOffer,
   createBooking,
   getAirlineCredits,
   getAirlineCredit,
