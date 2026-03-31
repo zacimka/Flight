@@ -39,7 +39,7 @@ const getAirports = async (req, res, next) => {
 // 2. SEARCH FLIGHTS (WITH PRIVATE FARES)
 const searchFlights = async (req, res, next) => {
   try {
-    const { origin, destination, departure_date, return_date, adults, children, cabin_class, max_connections, private_fares } = req.body;
+    const { origin, destination, departure_date, return_date, adults, children, cabin_class, max_connections, private_fares, airline_credit_ids } = req.body;
 
     if (!origin || !destination || !departure_date || !adults) {
       return res.status(400).json({ message: 'Missing required fields for flight search' });
@@ -67,6 +67,11 @@ const searchFlights = async (req, res, next) => {
     // Private Fares integration (Corporate/Negotiated)
     if (private_fares && typeof private_fares === 'object') {
        requestPayload.private_fares = private_fares;
+    }
+
+    // Airline Credits binding
+    if (airline_credit_ids && Array.isArray(airline_credit_ids)) {
+       requestPayload.airline_credit_ids = airline_credit_ids;
     }
 
     const offerRequest = await duffel.offerRequests.create(requestPayload);
@@ -217,4 +222,57 @@ const createBooking = async (req, res, next) => {
   }
 };
 
-module.exports = { getAirports, searchFlights, getOffer, createBooking };
+// 6. GET AIRLINE CREDITS
+const getAirlineCredits = async (req, res, next) => {
+  try {
+    const { user_id } = req.query; // optional filtering by user_id
+    let path = '/air/airline_credits';
+    if (user_id) path += `?user_id=${user_id}`;
+
+    const response = await duffel.client.request({ method: 'GET', path });
+    res.json({ data: response.data });
+  } catch (error) {
+    console.error('Duffel Get Credits Error:', error.message);
+    res.status(500).json({ message: 'Failed to retrieve airline credits', details: error.errors || error.message });
+  }
+};
+
+const getAirlineCredit = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const response = await duffel.client.request({ method: 'GET', path: `/air/airline_credits/${id}` });
+    res.json({ data: response.data });
+  } catch (error) {
+    console.error('Duffel Get Credit Error:', error.message);
+    res.status(500).json({ message: 'Failed to retrieve airline credit', details: error.errors || error.message });
+  }
+};
+
+// 7. CREATE AIRLINE CREDIT 
+const createAirlineCredit = async (req, res, next) => {
+  try {
+    /* Expected req.body: { 
+      airline_iata_code, code, amount, amount_currency, issued_on, 
+      expires_at, given_name, family_name, user_id, type 
+    } */
+    const response = await duffel.client.request({
+      method: 'POST',
+      path: '/air/airline_credits',
+      data: { data: req.body }
+    });
+    res.status(201).json({ data: response.data });
+  } catch (error) {
+    console.error('Duffel Create Credit Error:', error.message);
+    res.status(500).json({ message: 'Failed to create airline credit', details: error.errors || error.message });
+  }
+};
+
+module.exports = { 
+  getAirports, 
+  searchFlights, 
+  getOffer, 
+  createBooking, 
+  getAirlineCredits, 
+  getAirlineCredit, 
+  createAirlineCredit 
+};
