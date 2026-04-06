@@ -42,11 +42,14 @@ const DuffelAncillariesPanel = ({
     return () => { mounted = false; };
   }, []);
 
+  // ZamGo Tiered Fixed Markup (matches backend logic exactly)
   const applyMarkup = (amount, currency) => {
     const base = parseFloat(amount || 0);
-    const withPct = base * (1 + markupPercent / 100);
-    const withFixed = withPct + markupFixed;
-    return { amount: withFixed.toFixed(2), currency };
+    let markup = 0;
+    if (base < 100)       markup = 15;
+    else if (base < 500)  markup = 30;
+    else                  markup = 50;
+    return { amount: (base + markup).toFixed(2), markup, currency };
   };
 
   const handlePayloadReady = (payload) => {

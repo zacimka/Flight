@@ -137,14 +137,14 @@ const DuffelBookingFlow = ({ user }) => {
       const payload = {
         offer_id: selectedOffer.offer_id,
         total_amount: grandTotal,
-        total_currency: selectedOffer.total_currency,
-        passengers: passengerDetails,
         services: ancillaryServices.filter(s => s.quantity > 0),
-        payments: [{
-          ...paymentData,
-          amount: grandTotal,
-          currency: selectedOffer.total_currency,
-        }]
+        passengers: passengerDetails,
+        payment_type: 'card', 
+        payment_id: paymentData.three_d_secure_session_id,
+        metadata: {
+           customer_id: user.id || "GUEST",
+           booking_channel: "Zamgo_Web_Checkout"
+        }
       };
 
       const res = await createDuffelBooking(payload, user.token);

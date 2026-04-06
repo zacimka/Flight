@@ -89,9 +89,53 @@ const searchFlights = async (req, res) => {
     res.status(500).json({ message: 'Flight search failed', details: error.errors || error.message });
   }
 };
-
 // ─────────────────────────────────────────────────────────────────────────
-// 3. OFFER DETAILS — conditions + segments + available_services (seats/bags)
+// 2b. PRICE CHECK + MARKUP (GET /api/duffel/price-check)
+//     Returns final price after applying ZamGo margin
+//     Body: { offer_id, markup_percent (default 10), markup_fixed (default 0) }
+// ─────────────────────────────────────────────────────────────────────────
+const priceCheck = async (req, res) => {
+  try {
+    const { offer_id } = req.body;
+    if (!offer_id) return res.status(400).json({ message: 'offer_id required' });
+
+    // Fetch latest pricing + available services in one call
+    const offer = await duffel.offers.get(offer_id, { return_available_services: true });
+    const { total_amount, total_currency, conditions } = offer.data;
+
+    const base = parseFloat(total_amount);
+
+    // ZamGo Tiered Fixed Markup Logic
+    let markup = 0;
+    if (base < 100) {
+      markup = 15;       // Rakis: +£15
+    } else if (base < 500) {
+      markup = 30;       // Dhexdhexaad: +£30
+    } else {
+      markup = 50;       // Qaali: +£50 GO'AN
+    }
+
+    const finalPrice = (base + markup).toFixed(2);
+
+    res.json({
+      data: {
+        base_price: base.toFixed(2),
+        zamgo_markup: markup,
+        total_to_charge: finalPrice,
+        currency: total_currency,
+        markup_tier: base < 100 ? 'budget (<100)' : base < 500 ? 'mid (100-500)' : 'premium (500+)',
+        refundable: conditions?.refund_before_departure !== null,
+        changeable: conditions?.change_before_departure !== null,
+        airline_credits: offer.data.available_airline_credit_ids || [],
+        available_services: offer.data.available_services || []
+      }
+    });
+  } catch (error) {
+    console.error('Price Check Error:', error.message);
+    res.status(422).json({ message: 'Offer expired or price changed', details: error.errors || error.message });
+  }
+};
+
 //    Uses return_available_services: true for latest service pricing
 // ─────────────────────────────────────────────────────────────────────────
 const getOffer = async (req, res) => {
@@ -163,17 +207,17 @@ const getOffer = async (req, res) => {
 const createBooking = async (req, res) => {
   try {
     const {
-      offer_id, passengers, payments, total_amount, total_currency,
+      offer_id, passengers, payment_type, payment_id, total_amount,
       services,   // [{ id, quantity }] — seats / bags from ancillaries
       credit_id,  // optional airline credit ID
-      metadata    // optional { customer_id, external_reference }
+      metadata    // optional from client, but we mix with Zamgo tracking
     } = req.body;
 
     if (!offer_id || !passengers || !Array.isArray(passengers))
       return res.status(400).json({ message: 'Missing offer_id or passengers' });
 
     const orderData = {
-      type: 'hold',
+      type: 'instant', // Always execute booking directly based on user spec
       selected_offers: [offer_id],
       passengers: passengers.map(p => ({
         id: p.id,
@@ -184,38 +228,56 @@ const createBooking = async (req, res) => {
         title: p.title,
         email: p.email,
         phone_number: p.phone_number
-      }))
+      })),
+      metadata: {
+         ...metadata,
+         agency: "Zamgo Travel Ltd",
+         payment_source: payment_type || "card",
+         profit_margin: "Fixed Tier logic applied upstream"
+      }
     };
 
     // Ancillary services (seats, bags)
     if (services && Array.isArray(services) && services.length > 0)
       orderData.services = services;
 
-    // Metadata for customer association & external reference tracking
-    if (metadata && typeof metadata === 'object')
-      orderData.metadata = metadata;
-
-    // Payment — 3DS card, balance, or airline credit
-    if (payments && Array.isArray(payments) && payments.length > 0) {
-      orderData.type = 'instant';
-      orderData.payments = payments; // includes { type:'card', three_d_secure_session_id, amount, currency }
-    } else if (total_amount && total_currency) {
-      orderData.type = 'instant';
-      orderData.payments = [{ type: 'balance', amount: total_amount.toString(), currency: total_currency }];
+    // SELECT PAYMENT METHOD
+    // payment_type comes from frontend ('balance', 'cash', 'card')
+    let paymentPayload = [];
+    if (payment_type === 'balance' || payment_type === 'cash') {
+      // Both Balance and Cash bookings pull from Zamgo's internal Duffel Balance
+      paymentPayload.push({
+          type: 'balance',
+          amount: total_amount.toString(),
+          currency: 'GBP'
+      });
+    } else if (payment_type === 'card' && payment_id) {
+       // Customer's Credit Card mapped via 3DSession or Component ID
+       paymentPayload.push({
+          type: 'card',
+          id: payment_id
+       });
     }
 
-    // Add airline credit as additional payment if provided
+    // Add airline credit as a payment method if provided
     if (credit_id) {
-      if (!orderData.payments) orderData.payments = [];
-      orderData.payments.push({ type: 'airline_credits', id: credit_id });
+      paymentPayload.push({ type: 'airline_credits', id: credit_id });
     }
+
+    if (paymentPayload.length === 0) {
+      return res.status(400).json({ message: 'Valid payment_type (card, balance, cash) required' });
+    }
+
+    orderData.payments = paymentPayload;
 
     const order = await duffel.orders.create(orderData);
     res.status(201).json({
+      success: true,
       message: 'Booked successfully via Duffel',
       data: {
         booking_reference: order.data.booking_reference,
         order_id: order.data.id,
+        payment_status: "Paid via " + (payment_type || "card"),
         order: order.data
       }
     });
@@ -422,6 +484,7 @@ const generateClientKey = async (req, res) => {
 module.exports = {
   getAirports,
   searchFlights,
+  priceCheck,
   getOffer,
   createBooking,
   getOrder,

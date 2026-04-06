@@ -3,6 +3,7 @@ const { protect } = require('../middlewares/auth');
 const {
   getAirports,
   searchFlights,
+  priceCheck,
   getOffer,
   createBooking,
   getOrder,
@@ -25,6 +26,7 @@ const router = express.Router();
 router.get('/client-key', generateClientKey);
 router.get('/airports', getAirports);
 router.post('/search-flights', searchFlights);
+router.post('/price-check', priceCheck);
 router.get('/offer/:id', getOffer);
 
 // ── Webhooks (no auth — Duffel sends these) ───────────────────────────────

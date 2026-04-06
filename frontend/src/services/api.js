@@ -28,6 +28,7 @@ export const submitContactMessage = (payload) => API.post('/contact', payload);
 
 // ── Duffel endpoints ──────────────────────────────────────────────────────
 export const duffelSearchFlights = (payload) => API.post('/duffel/search-flights', payload);
+export const getDuffelPriceCheck = (payload) => API.post('/duffel/price-check', payload);
 export const getDuffelOffer = (id) => API.get(`/duffel/offer/${id}`);
 export const getDuffelClientKey = () => API.get('/duffel/client-key');
 export const createDuffelBooking = (payload, token) =>
