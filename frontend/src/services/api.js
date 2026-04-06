@@ -13,7 +13,7 @@ const API = axios.create({ baseURL: resolveApiBaseURL() });
 export const register = (payload) => API.post('/auth/register', payload);
 export const login = (payload) => API.post('/auth/login', payload);
 export const searchFlights = (payload) => API.post('/flights/search', payload);
-export const searchAirports = (q) => API.get('/airports', { params: { q } });
+export const searchAirports = (q) => API.get('/duffel/airports', { params: { q } });
 export const createPaymentIntent = (payload) => API.post('/payments/create', payload);
 export const createBooking = (payload, token) => API.post('/bookings', payload, { headers: { Authorization: `Bearer ${token}` } });
 export const confirmBookingPayment = (payload, token) => API.post('/bookings/confirm-payment', payload, { headers: { Authorization: `Bearer ${token}` } });

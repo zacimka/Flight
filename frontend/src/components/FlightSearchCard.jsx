@@ -45,52 +45,31 @@ const FlightSearchCard = () => {
     setSegments(newSegments);
   };
 
+  const extractIata = (str) => {
+    if(!str) return '';
+    const match = str.match(/\(([^)]+)\)/); // Matches content inside parentheses
+    if(match && match[1].length === 3) return match[1];
+    return str.slice(-3).toUpperCase();
+  };
+
   const handleSearch = async (e) => {
     e.preventDefault();
-    setError('');
 
-    // Infant Validation: One infant per adult (lap policy)
-    if (criteria.infants > criteria.passengers) {
-      setError('Number of infants cannot exceed the number of adults.');
-      return;
-    }
+    const originIata = extractIata(criteria.origin);
+    const destIata = extractIata(criteria.destination);
 
-    let searchCriteria = {
-      passengers: criteria.passengers,
-      children: criteria.children,
-      infants: criteria.infants,
-      class: criteria.flightClass,
-      tripType,
-    };
-
-    if (tripType === 'multicity') {
-      const isValid = segments.every(s => s.origin && s.destination && s.date);
-      if (!isValid) {
-        setError('Please fill in all segments for multi-city travel.');
-        return;
-      }
-      searchCriteria.segments = segments;
-    } else {
-      if (!criteria.origin || !criteria.destination || !criteria.departureDate) {
-        setError('Please fill in all required fields');
-        return;
-      }
-      searchCriteria.origin = criteria.origin;
-      searchCriteria.destination = criteria.destination;
-      searchCriteria.date = criteria.departureDate;
-      searchCriteria.returnDate = tripType === 'roundtrip' ? criteria.returnDate : undefined;
-    }
-
-    setLoading(true);
-    try {
-      const res = await searchFlights(searchCriteria);
-      const results = res.data.data || [];
-      navigate('/results', { state: { results, searchCriteria } });
-    } catch (err) {
-      setError(err.response?.data?.message || 'Search failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    // Pass the state to the DuffelBookingFlow so it can auto-run
+    navigate('/duffel', { 
+      state: { 
+        origin: originIata, 
+        destination: destIata, 
+        departure_date: criteria.departureDate,
+        return_date: criteria.returnDate,
+        adults: criteria.passengers,
+        children: criteria.children,
+        cabin_class: criteria.flightClass
+      } 
+    });
   };
 
   return (

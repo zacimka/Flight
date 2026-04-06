@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { duffelSearchFlights, getDuffelOffer, createDuffelBooking } from '../services/api';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import DuffelPaymentIntegration from '../components/DuffelPaymentIntegration';
 import DuffelAncillariesPanel from '../components/DuffelAncillariesPanel';
 
@@ -8,22 +8,31 @@ const CABIN_CLASSES = ['economy', 'premium_economy', 'business', 'first'];
 
 const DuffelBookingFlow = ({ user }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [step, setStep] = useState('SEARCH');   // SEARCH → SELECT_OFFER → ANCILLARIES → PASSENGER_DETAILS
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // ── SEARCH STATE ─────────────────────────────────────────────────────────
   const [searchParams, setSearchParams] = useState({
-    origin: '', destination: '',
-    departure_date: '', return_date: '',
-    adults: 1, children: 0,
-    cabin_class: 'economy',
+    origin: location.state?.origin || '', destination: location.state?.destination || '',
+    departure_date: location.state?.departure_date || '', return_date: location.state?.return_date || '',
+    adults: location.state?.adults || 1, children: location.state?.children || 0,
+    cabin_class: location.state?.cabin_class || 'economy',
     // Private fares / loyalty
     corporate_code: '',       // e.g. "CORP123" → sent to matching airline
     airline_iata_for_corp: '', // e.g. "QF" or "BA"
     loyalty_account_number: '',
     loyalty_airline_iata: '',
   });
+
+  useEffect(() => {
+     // Auto trigger search if coming from homepage with populated mandatory fields
+     if (location.state?.origin && location.state?.destination && location.state?.departure_date) {
+        // We synthesize an event-like object to satisfy fetchOffers(e)
+        fetchOffers({ preventDefault: () => {} });
+     }
+  }, []);
 
   const [offers, setOffers] = useState([]);
   const [selectedOffer, setSelectedOffer] = useState(null);
