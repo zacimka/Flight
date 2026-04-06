@@ -26,14 +26,29 @@ export const refundBooking = (bookingId, token) => API.post(`/admin/bookings/${b
 export const getAdminStats = (token) => API.get('/admin/stats', { headers: { Authorization: `Bearer ${token}` } });
 export const submitContactMessage = (payload) => API.post('/contact', payload);
 
-// Duffel New API endpoints
+// ── Duffel endpoints ──────────────────────────────────────────────────────
 export const duffelSearchFlights = (payload) => API.post('/duffel/search-flights', payload);
 export const getDuffelOffer = (id) => API.get(`/duffel/offer/${id}`);
-export const createDuffelBooking = (payload, token) => API.post('/duffel/create-booking', payload, { headers: { Authorization: `Bearer ${token}` } });
 export const getDuffelClientKey = () => API.get('/duffel/client-key');
+export const createDuffelBooking = (payload, token) =>
+  API.post('/duffel/create-booking', payload, { headers: { Authorization: `Bearer ${token}` } });
+
+// Orders & post-booking
+export const getDuffelOrder = (orderId, token) =>
+  API.get(`/duffel/orders/${orderId}`, { headers: { Authorization: `Bearer ${token}` } });
+export const getOrderServices = (orderId, token) =>
+  API.get(`/duffel/orders/${orderId}/services`, { headers: { Authorization: `Bearer ${token}` } });
+export const addOrderServices = (orderId, payload, token) =>
+  API.post(`/duffel/orders/${orderId}/services`, payload, { headers: { Authorization: `Bearer ${token}` } });
+
+// Cancellation
+export const createCancellationQuote = (payload, token) =>
+  API.post('/duffel/cancellation-quote', payload, { headers: { Authorization: `Bearer ${token}` } });
+export const confirmCancellation = (cancellationId, token) =>
+  API.post(`/duffel/cancellations/${cancellationId}/confirm`, {}, { headers: { Authorization: `Bearer ${token}` } });
 
 // Function to fetch PDF as blob
-export const getBookingPDF = (id, token) => API.get(`/bookings/${id}/pdf`, { 
+export const getBookingPDF = (id, token) => API.get(`/bookings/${id}/pdf`, {
   headers: { Authorization: `Bearer ${token}` },
-  responseType: 'blob' 
+  responseType: 'blob'
 });

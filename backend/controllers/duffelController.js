@@ -1,60 +1,64 @@
 const duffel = require('../services/duffelService');
 
+// ─────────────────────────────────────────────────────────────────────────
 // 1. AIRPORT SEARCH (PLACES API)
-const getAirports = async (req, res, next) => {
+// ─────────────────────────────────────────────────────────────────────────
+const getAirports = async (req, res) => {
   try {
     const { lat, lng, rad, q } = req.query;
-    
-    // Duffel accepts query strings or latitude/longitude for suggestion lookups
     let params = {};
     if (lat && lng) {
-       params.lat = parseFloat(lat);
-       params.lng = parseFloat(lng);
-       if (rad) params.rad = parseInt(rad);
+      params.lat = parseFloat(lat);
+      params.lng = parseFloat(lng);
+      if (rad) params.rad = parseInt(rad);
     } else if (q) {
-       params.query = q;
+      params.query = q;
     } else {
-       return res.status(400).json({ message: 'Must provide either ?q=SearchTerm or ?lat=..&lng=..' });
+      return res.status(400).json({ message: 'Provide ?q=SearchTerm or ?lat=..&lng=..' });
     }
-
     const suggestions = await duffel.suggestions.list(params);
-    
-    const mappedAirports = suggestions.data.map(place => ({
-      airport_name: place.name,
-      iata_code: place.iata_code,
-      city_name: place.city_name,
-      coordinates: {
-        latitude: place.latitude,
-        longitude: place.longitude
-      }
+    const mapped = suggestions.data.map(p => ({
+      airport_name: p.name,
+      iata_code: p.iata_code,
+      city_name: p.city_name,
+      coordinates: { latitude: p.latitude, longitude: p.longitude }
     }));
-
-    res.json({ data: mappedAirports });
+    res.json({ data: mapped });
   } catch (error) {
-    console.error('Duffel Places Error:', error.message);
     res.status(500).json({ message: 'Flight suggestions failed', details: error.errors || error.message });
   }
 };
 
-// 2. SEARCH FLIGHTS (WITH PRIVATE FARES)
-const searchFlights = async (req, res, next) => {
+// ─────────────────────────────────────────────────────────────────────────
+// 2. SEARCH FLIGHTS — Private Fares + Loyalty Programme Accounts
+// ─────────────────────────────────────────────────────────────────────────
+const searchFlights = async (req, res) => {
   try {
-    const { origin, destination, departure_date, return_date, adults, children, cabin_class, max_connections, private_fares, airline_credit_ids } = req.body;
+    const {
+      origin, destination, departure_date, return_date,
+      adults, children,
+      cabin_class, max_connections,
+      private_fares,              // { "BA": [{ corporate_code: "CORP123" }], "AA": [{ tracking_reference: "AA789" }] }
+      airline_credit_ids,
+      loyalty_programme_accounts, // [{ airline_iata_code: "QF", account_number: "12345" }]
+    } = req.body;
 
-    if (!origin || !destination || !departure_date || !adults) {
-      return res.status(400).json({ message: 'Missing required fields for flight search' });
-    }
+    if (!origin || !destination || !departure_date || !adults)
+      return res.status(400).json({ message: 'Missing required fields' });
 
+    // Build passengers, attaching loyalty accounts per the Duffel spec
     const passengers = [];
-    for (let i = 0; i < parseInt(adults); i++) passengers.push({ type: 'adult' });
-    for (let i = 0; i < parseInt(children || 0); i++) passengers.push({ type: 'child' });
+    for (let i = 0; i < parseInt(adults); i++)
+      passengers.push({
+        type: 'adult',
+        ...(loyalty_programme_accounts?.length ? { loyalty_programme_accounts } : {})
+      });
+    for (let i = 0; i < parseInt(children || 0); i++)
+      passengers.push({ type: 'child' });
 
     const slices = [{ origin, destination, departure_date }];
-    if (return_date) {
-      slices.push({ origin: destination, destination: origin, departure_date: return_date });
-    }
+    if (return_date) slices.push({ origin: destination, destination: origin, departure_date: return_date });
 
-    // Performance Optimization: limit offers to 50, use max connections
     const requestPayload = {
       return_offers: true,
       slices,
@@ -64,25 +68,19 @@ const searchFlights = async (req, res, next) => {
       max_connections: max_connections !== undefined ? parseInt(max_connections) : undefined,
     };
 
-    // Private Fares integration (Corporate/Negotiated)
-    if (private_fares && typeof private_fares === 'object') {
-       requestPayload.private_fares = private_fares;
-    }
+    if (private_fares && typeof private_fares === 'object')
+      requestPayload.private_fares = private_fares;
 
-    // Airline Credits binding
-    if (airline_credit_ids && Array.isArray(airline_credit_ids)) {
-       requestPayload.airline_credit_ids = airline_credit_ids;
-    }
+    if (airline_credit_ids && Array.isArray(airline_credit_ids))
+      requestPayload.airline_credit_ids = airline_credit_ids;
 
     const offerRequest = await duffel.offerRequests.create(requestPayload);
-
-    // Limit offers to 50 mapping requirement
     const limitedOffers = (offerRequest.data.offers || []).slice(0, 50);
 
     res.json({
       data: {
         offer_request_id: offerRequest.data.id,
-        passengers: offerRequest.data.passengers, 
+        passengers: offerRequest.data.passengers,
         offers: limitedOffers
       }
     });
@@ -92,51 +90,50 @@ const searchFlights = async (req, res, next) => {
   }
 };
 
-// 3. & 4. OFFER DETAILS (CONDITIONS HANDLING + STOPS/SEGMENTS)
-const getOffer = async (req, res, next) => {
+// ─────────────────────────────────────────────────────────────────────────
+// 3. OFFER DETAILS — conditions + segments + available_services (seats/bags)
+//    Uses return_available_services: true for latest service pricing
+// ─────────────────────────────────────────────────────────────────────────
+const getOffer = async (req, res) => {
   try {
     const offerId = req.params.id;
-    if (!offerId) return res.status(400).json({ message: 'Offer ID required' });
 
-    // Ensure latest pricing via retrieval
-    const offer = await duffel.offers.get(offerId);
-
+    // Duffel doc: pass return_available_services to get seat/bag catalog
+    const offer = await duffel.offers.get(offerId, { return_available_services: true });
     const { total_amount, total_currency, slices, conditions } = offer.data;
 
-    // Conditions Business Logic Interpretation
     const parseCondition = (cond) => {
-      if (!cond || cond.allowed === undefined) return "Rules unavailable";
-      if (!cond.allowed) return "Not allowed";
-      if (cond.allowed && !cond.penalty_amount) return "Free explicitly";
+      if (!cond || cond.allowed === undefined) return 'Rules unavailable';
+      if (!cond.allowed) return 'Not allowed';
+      if (cond.allowed && !cond.penalty_amount) return 'Free';
       if (cond.allowed && cond.penalty_amount > 0) return `Allowed with penalty (${cond.penalty_currency} ${cond.penalty_amount})`;
-      return "Unknown mapping";
+      return 'Unknown';
     };
 
     const parsedConditions = {
-       change: conditions?.change_before_departure ? parseCondition(conditions.change_before_departure) : "Not changeable",
-       refund: conditions?.refund_before_departure ? parseCondition(conditions.refund_before_departure) : "Not refundable",
+      change: parseCondition(conditions?.change_before_departure),
+      refund: parseCondition(conditions?.refund_before_departure),
+      is_refundable: conditions?.refund_before_departure !== null,
+      is_changeable: conditions?.change_before_departure !== null,
     };
 
-    // Segment & Stop Formatting
-    const formattedSlices = slices.map(slice => {
-        return {
-           duration: slice.duration,
-           stops: slice.segments.length > 1 ? slice.segments.length - 1 : 0,
-           origin: slice.origin.iata_code,
-           destination: slice.destination.iata_code,
-           segments: slice.segments.map(seg => ({
-               airport_name_from: seg.origin.name,
-               city_from: seg.origin.city_name,
-               departure_time: seg.departing_at,
-               airport_name_to: seg.destination.name,
-               city_to: seg.destination.city_name,
-               arrival_time: seg.arriving_at,
-               duration: seg.duration,
-               airline: seg.marketing_carrier.name,
-               flight_number: seg.marketing_carrier_flight_number
-           }))
-        };
-    });
+    const formattedSlices = slices.map(slice => ({
+      duration: slice.duration,
+      stops: slice.segments.length > 1 ? slice.segments.length - 1 : 0,
+      origin: slice.origin.iata_code,
+      destination: slice.destination.iata_code,
+      segments: slice.segments.map(seg => ({
+        airport_name_from: seg.origin.name,
+        city_from: seg.origin.city_name,
+        departure_time: seg.departing_at,
+        airport_name_to: seg.destination.name,
+        city_to: seg.destination.city_name,
+        arrival_time: seg.arriving_at,
+        duration: seg.duration,
+        airline: seg.marketing_carrier.name,
+        flight_number: seg.marketing_carrier_flight_number
+      }))
+    }));
 
     res.json({
       data: {
@@ -146,34 +143,40 @@ const getOffer = async (req, res, next) => {
         conditions_readable: parsedConditions,
         formatted_slices: formattedSlices,
         passengers: offer.data.passengers,
+        available_services: offer.data.available_services || [],
+        available_airline_credit_ids: offer.data.available_airline_credit_ids || [],
+        intended_payment_methods: offer.data.intended_payment_methods || [],
         full_offer: offer.data
       }
     });
   } catch (error) {
     console.error('Duffel Offer Error:', error.message);
-    
-    // Explicit Expired Offer trapping
-    if (error.errors && error.errors.some(e => e.code === 'expired' || e.type === 'not_found')) {
-       return res.status(400).json({ message: 'Offer has expired. Please restart search.', expired: true });
-    }
-    res.status(500).json({ message: 'Failed to retrieve offer details', details: error.errors || error.message });
+    if (error.errors?.some(e => e.code === 'expired' || e.type === 'not_found'))
+      return res.status(400).json({ message: 'Offer expired. Restart search.', expired: true });
+    res.status(500).json({ message: 'Failed to retrieve offer', details: error.errors || error.message });
   }
 };
 
-// 5. CREATE BOOKING
-const createBooking = async (req, res, next) => {
+// ─────────────────────────────────────────────────────────────────────────
+// 4. CREATE BOOKING — 3DS payment + services + airline credits + metadata
+// ─────────────────────────────────────────────────────────────────────────
+const createBooking = async (req, res) => {
   try {
-    const { offer_id, passengers, payments, total_amount, total_currency } = req.body;
+    const {
+      offer_id, passengers, payments, total_amount, total_currency,
+      services,   // [{ id, quantity }] — seats / bags from ancillaries
+      credit_id,  // optional airline credit ID
+      metadata    // optional { customer_id, external_reference }
+    } = req.body;
 
-    if (!offer_id || !passengers || !Array.isArray(passengers)) {
-      return res.status(400).json({ message: 'Missing offer_id or properly formatted passengers array' });
-    }
+    if (!offer_id || !passengers || !Array.isArray(passengers))
+      return res.status(400).json({ message: 'Missing offer_id or passengers' });
 
     const orderData = {
-      type: 'hold', 
+      type: 'hold',
       selected_offers: [offer_id],
       passengers: passengers.map(p => ({
-        id: p.id, // Mandatory from offer request
+        id: p.id,
         given_name: p.given_name,
         family_name: p.family_name,
         born_on: p.born_on,
@@ -184,77 +187,215 @@ const createBooking = async (req, res, next) => {
       }))
     };
 
-    // Payment mapping explicitly
+    // Ancillary services (seats, bags)
+    if (services && Array.isArray(services) && services.length > 0)
+      orderData.services = services;
+
+    // Metadata for customer association & external reference tracking
+    if (metadata && typeof metadata === 'object')
+      orderData.metadata = metadata;
+
+    // Payment — 3DS card, balance, or airline credit
     if (payments && Array.isArray(payments) && payments.length > 0) {
-        orderData.type = 'instant';
-        orderData.payments = payments; // E.g., type: "balance", exact amnt provided.
+      orderData.type = 'instant';
+      orderData.payments = payments; // includes { type:'card', three_d_secure_session_id, amount, currency }
     } else if (total_amount && total_currency) {
-        orderData.type = 'instant';
-        orderData.payments = [{
-            type: 'balance',
-            amount: total_amount.toString(),
-            currency: total_currency
-        }];
+      orderData.type = 'instant';
+      orderData.payments = [{ type: 'balance', amount: total_amount.toString(), currency: total_currency }];
+    }
+
+    // Add airline credit as additional payment if provided
+    if (credit_id) {
+      if (!orderData.payments) orderData.payments = [];
+      orderData.payments.push({ type: 'airline_credits', id: credit_id });
     }
 
     const order = await duffel.orders.create(orderData);
-
     res.status(201).json({
-      message: 'Flight booked successfully via Duffel',
+      message: 'Booked successfully via Duffel',
       data: {
         booking_reference: order.data.booking_reference,
         order_id: order.data.id,
         order: order.data
       }
     });
-
   } catch (error) {
     console.error('Duffel Booking Error:', error.message);
-    
-    // Check missing passenger ID invalidity or mismatch
-    const isBadPassengerId = error.errors?.some(e => e.code === 'invalid_passenger' || e.message.includes('passenger'));
-    
-    res.status(500).json({ 
-       message: isBadPassengerId ? 'Invalid passenger configuration.' : 'Booking failed with vendor', 
-       details: error.errors || error.message,
-       debug: 'Check offer_id validity, passenger IDs mapping exactly to offer request, and payment amount match.'
+    const isBadPassenger = error.errors?.some(e => e.code === 'invalid_passenger');
+    res.status(500).json({
+      message: isBadPassenger ? 'Invalid passenger configuration.' : 'Booking failed',
+      details: error.errors || error.message,
+      debug: 'Check offer_id, passenger IDs matching the offer request, payment amount, and services list.'
     });
   }
 };
 
-// 6. GET AIRLINE CREDITS
-const getAirlineCredits = async (req, res, next) => {
+// ─────────────────────────────────────────────────────────────────────────
+// 5. GET ORDER
+// ─────────────────────────────────────────────────────────────────────────
+const getOrder = async (req, res) => {
   try {
-    const { user_id } = req.query; // optional filtering by user_id
+    const order = await duffel.orders.get(req.params.order_id);
+    res.json({ data: order.data });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch order', details: error.errors || error.message });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// 6. POST-BOOKING SERVICES — add bags after booking
+// ─────────────────────────────────────────────────────────────────────────
+const getOrderServices = async (req, res) => {
+  try {
+    const response = await duffel.orders.getAvailableServices(req.params.order_id);
+    res.json({ data: response.data });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch order services', details: error.errors || error.message });
+  }
+};
+
+const addOrderServices = async (req, res) => {
+  try {
+    const { services, payment } = req.body;
+    if (!services || !payment)
+      return res.status(400).json({ message: 'services and payment are required' });
+    const response = await duffel.orders.addServices({
+      order_id: req.params.order_id,
+      add_services: services,
+      payment
+    });
+    res.json({ data: response.data });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to add services', details: error.errors || error.message });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// 7. ORDER CHANGE — modify slices (remove old + add new)
+// ─────────────────────────────────────────────────────────────────────────
+const createOrderChangeRequest = async (req, res) => {
+  try {
+    const { order_id, slices } = req.body;
+    // slices: { remove: [slice_id], add: [{ ...slice_data }] }
+    if (!order_id || !slices)
+      return res.status(400).json({ message: 'order_id and slices required' });
+
+    const changeRequest = await duffel.orderChangeRequests.create({ order_id, slices });
+    res.status(201).json({ data: changeRequest.data });
+  } catch (error) {
+    console.error('Order Change Request Error:', error.message);
+    res.status(500).json({ message: 'Failed to create order change request', details: error.errors || error.message });
+  }
+};
+
+const confirmOrderChange = async (req, res) => {
+  try {
+    const { change_id } = req.params;
+    const { payment } = req.body;
+    const change = await duffel.orderChanges.confirm(change_id, { payment });
+    res.json({ data: change.data });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to confirm order change', details: error.errors || error.message });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// 8. CANCELLATION — quote first, then confirm
+// ─────────────────────────────────────────────────────────────────────────
+const createCancellationQuote = async (req, res) => {
+  try {
+    const { order_id } = req.body;
+    if (!order_id) return res.status(400).json({ message: 'order_id required' });
+    const quote = await duffel.orderCancellations.create({ order_id });
+    res.status(201).json({
+      data: {
+        cancellation_id: quote.data.id,
+        refund_amount: quote.data.refund_amount,
+        refund_currency: quote.data.refund_currency,
+        refund_to: quote.data.refund_to,
+        expires_at: quote.data.expires_at,
+        airline_credits: quote.data.airline_credits || []
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to create cancellation quote', details: error.errors || error.message });
+  }
+};
+
+const confirmCancellation = async (req, res) => {
+  try {
+    const result = await duffel.orderCancellations.confirm(req.params.cancellation_id);
+    res.json({ message: 'Order cancelled successfully', data: result.data });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to confirm cancellation', details: error.errors || error.message });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// 9. WEBHOOKS — handle Duffel events (order.confirmed, order.cancelled, etc.)
+// ─────────────────────────────────────────────────────────────────────────
+const handleWebhook = (req, res) => {
+  try {
+    const event = req.body;
+    console.log(`[Webhook] Received Duffel event: ${event.type}`);
+
+    switch (event.type) {
+      case 'order.confirmed':
+        console.log(`✅ Order confirmed: ${event.data?.booking_reference}`);
+        // TODO: Send booking confirmation email to customer
+        break;
+      case 'order.cancelled':
+        console.log(`❌ Order cancelled: ${event.data?.id}`);
+        // TODO: Notify customer of cancellation + refund status
+        break;
+      case 'order.airline_initiated_change_updated':
+        console.log(`✈️ Airline change detected for order: ${event.data?.order_id}`);
+        // TODO: Notify customer of schedule/route change
+        break;
+      case 'payment.succeeded':
+        console.log(`💳 Payment success: ${event.data?.id}`);
+        break;
+      case 'payment.failed':
+        console.error(`⚠️ Payment FAILED: ${event.data?.id} — ${event.data?.failure_reason}`);
+        // TODO: Alert customer, offer retry
+        break;
+      default:
+        console.log(`[Webhook] Unhandled event type: ${event.type}`);
+    }
+
+    res.status(200).json({ received: true });
+  } catch (err) {
+    console.error('[Webhook] Processing error:', err.message);
+    res.status(500).json({ received: false });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// 10. AIRLINE CREDITS
+// ─────────────────────────────────────────────────────────────────────────
+const getAirlineCredits = async (req, res) => {
+  try {
+    const { user_id } = req.query;
     let path = '/air/airline_credits';
     if (user_id) path += `?user_id=${user_id}`;
-
     const response = await duffel.client.request({ method: 'GET', path });
     res.json({ data: response.data });
   } catch (error) {
-    console.error('Duffel Get Credits Error:', error.message);
     res.status(500).json({ message: 'Failed to retrieve airline credits', details: error.errors || error.message });
   }
 };
 
-const getAirlineCredit = async (req, res, next) => {
+const getAirlineCredit = async (req, res) => {
   try {
-    const { id } = req.params;
-    const response = await duffel.client.request({ method: 'GET', path: `/air/airline_credits/${id}` });
+    const response = await duffel.client.request({ method: 'GET', path: `/air/airline_credits/${req.params.id}` });
     res.json({ data: response.data });
   } catch (error) {
-    console.error('Duffel Get Credit Error:', error.message);
     res.status(500).json({ message: 'Failed to retrieve airline credit', details: error.errors || error.message });
   }
 };
 
-// 7. CREATE AIRLINE CREDIT 
-const createAirlineCredit = async (req, res, next) => {
+const createAirlineCredit = async (req, res) => {
   try {
-    /* Expected req.body: { 
-      airline_iata_code, code, amount, amount_currency, issued_on, 
-      expires_at, given_name, family_name, user_id, type 
-    } */
     const response = await duffel.client.request({
       method: 'POST',
       path: '/air/airline_credits',
@@ -262,29 +403,37 @@ const createAirlineCredit = async (req, res, next) => {
     });
     res.status(201).json({ data: response.data });
   } catch (error) {
-    console.error('Duffel Create Credit Error:', error.message);
     res.status(500).json({ message: 'Failed to create airline credit', details: error.errors || error.message });
   }
 };
 
-// 8. DUFFEL UI COMPONENT CLIENT KEY (For DuffelCardForm / 3DS)
-const generateClientKey = async (req, res, next) => {
+// ─────────────────────────────────────────────────────────────────────────
+// 11. COMPONENT CLIENT KEY — for DuffelCardForm & 3DS
+// ─────────────────────────────────────────────────────────────────────────
+const generateClientKey = async (req, res) => {
   try {
     const response = await duffel.identity.componentClientKeys.create({});
     res.json({ data: { client_key: response.data.component_client_key } });
   } catch (error) {
-    console.error('Duffel Component Key Error:', error.message);
-    res.status(500).json({ message: 'Failed to generate Duffel Component Client Key', details: error.errors || error.message });
+    res.status(500).json({ message: 'Failed to generate Client Key', details: error.errors || error.message });
   }
 };
 
-module.exports = { 
-  getAirports, 
-  searchFlights, 
-  getOffer, 
-  createBooking, 
-  getAirlineCredits, 
-  getAirlineCredit, 
+module.exports = {
+  getAirports,
+  searchFlights,
+  getOffer,
+  createBooking,
+  getOrder,
+  getOrderServices,
+  addOrderServices,
+  createOrderChangeRequest,
+  confirmOrderChange,
+  createCancellationQuote,
+  confirmCancellation,
+  handleWebhook,
+  getAirlineCredits,
+  getAirlineCredit,
   createAirlineCredit,
   generateClientKey
 };
