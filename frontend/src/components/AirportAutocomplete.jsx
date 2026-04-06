@@ -36,7 +36,8 @@ const AirportAutocomplete = ({ label, placeholder, value, onChange }) => {
       setLoading(true);
       try {
         const res = await searchAirports(trimmedQuery);
-        const list = res.data;
+        // Axel: duffelController returns { data: [{...}] }
+        const list = res.data?.data || res.data;
         setResults(Array.isArray(list) ? list : []);
       } catch (err) {
         console.error('Failed to fetch airports', err);
@@ -51,7 +52,10 @@ const AirportAutocomplete = ({ label, placeholder, value, onChange }) => {
 
   const handleSelect = (airport) => {
     // Format the display string: "City (IATA) - Airport Name"
-    const displayString = `${airport.city} (${airport.IATA})`;
+    const matchedIata = airport.iata_code || airport.IATA;
+    const matchedCity = airport.city_name || airport.city;
+    const displayString = `${matchedCity} (${matchedIata})`;
+    
     setQuery(displayString);
     onChange(displayString); // Passes value back to parent component
     setIsOpen(false);
@@ -95,13 +99,13 @@ const AirportAutocomplete = ({ label, placeholder, value, onChange }) => {
               <div className="flex justify-between items-center">
                 <div>
                   <p className="font-semibold text-gray-800 text-sm">
-                    {airport.city} {airport.country ? `, ${airport.country}` : ''}
+                    {airport.city_name || airport.city} {airport.country ? `, ${airport.country}` : ''}
                   </p>
-                  <p className="text-xs text-gray-500">{airport.airport}</p>
+                  <p className="text-xs text-gray-500">{airport.airport_name || airport.airport}</p>
                 </div>
-                {airport.IATA && (
+                {(airport.iata_code || airport.IATA) && (
                   <span className="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded">
-                    {airport.IATA}
+                    {airport.iata_code || airport.IATA}
                   </span>
                 )}
               </div>
