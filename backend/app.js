@@ -25,9 +25,7 @@ app.get("/api/status", (req, res) => res.json({ status: "ZamGo Travel API is onl
 
 // Routes
 app.use("/api/auth", require("./routes/auth"));
-app.use("/api/flights", require("./routes/flights"));
 app.use("/api/duffel", require("./routes/duffel"));
-app.use("/api/airports", require("./routes/airports"));
 app.use("/api/bookings", require("./routes/bookings"));
 app.use("/api/payments", require("./routes/payments"));
 app.use("/api/admin", require("./routes/admin"));
