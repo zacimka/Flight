@@ -44,10 +44,10 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/duffel"
-            element={<DuffelBookingFlow user={user} />}
-          />
+          <Route path="/search" element={<DuffelBookingFlow user={user} />} />
+          <Route path="/flights" element={<DuffelBookingFlow user={user} />} />
+          <Route path="/checkout" element={<DuffelBookingFlow user={user} />} />
+          <Route path="/order-confirmation" element={<DuffelBookingFlow user={user} />} />
           <Route
             path="/dashboard"
             element={

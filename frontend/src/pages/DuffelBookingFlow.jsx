@@ -62,7 +62,11 @@ const DuffelBookingFlow = ({ user }) => {
      if (resultsRef.current) {
         resultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
      }
-  }, [step]);
+
+     if (step === 'SEARCH') navigate('/search', { replace: true });
+     else if (step === 'SELECT_OFFER') navigate('/flights', { replace: true });
+     else if (step === 'ANCILLARIES' || step === 'PASSENGER_DETAILS') navigate('/checkout', { replace: true });
+  }, [step, navigate]);
 
   const [offers, setOffers] = useState([]);
   const [selectedOffer, setSelectedOffer] = useState(null);
@@ -193,9 +197,7 @@ const DuffelBookingFlow = ({ user }) => {
       }
 
       const res = await createDuffelBooking(payload, user.token);
-      const ref = res.data.data.booking_reference;
-      alert(`✅ Booking confirmed! Reference: ${ref}`);
-      navigate('/dashboard');
+      navigate('/order-confirmation', { state: { booking: res.data.data } });
     } catch (err) {
       setError(err.response?.data?.debug || err.response?.data?.details || err.message || 'Booking failed.');
     } finally {

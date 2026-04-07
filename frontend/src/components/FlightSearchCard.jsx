@@ -68,7 +68,7 @@ const FlightSearchCard = () => {
     setError('');
 
     // Pass the state to the DuffelBookingFlow so it can auto-run
-    navigate('/duffel', { 
+    navigate('/search', { 
       state: { 
         origin: originIata, 
         destination: destIata, 
