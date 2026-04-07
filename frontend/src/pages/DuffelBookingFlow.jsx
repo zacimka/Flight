@@ -293,19 +293,34 @@ const DuffelBookingFlow = ({ user }) => {
                         </span>
                       )}
                     </div>
-                    {offer.slices.map((slice, i) => (
-                      <div key={i} className="flex flex-col gap-1 border-l-2 border-indigo-100 pl-4 py-1">
-                        <p className="text-sm text-gray-800 font-bold">
-                          <span className="text-gray-400 font-medium">Leg {i+1}: </span> 
-                          {new Date(slice.segments[0].departing_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} {slice.origin.iata_code} ➔ {new Date(slice.segments[slice.segments.length-1].arriving_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} {slice.destination.iata_code}
-                        </p>
-                        <p className="text-xs text-gray-500 font-semibold gap-2 flex items-center">
-                          <span className="bg-gray-100 px-2 py-0.5 rounded-full text-indigo-600">{slice.duration}</span>
-                          {slice.segments.length > 1 && <span className="text-amber-500">{slice.segments.length - 1} Stop(s)</span>}
-                          <span>👜 Carry-on & checked bags per fare rules</span>
-                        </p>
-                      </div>
-                    ))}
+                    {offer.slices.map((slice, i) => {
+                      const baggages = slice.segments[0]?.passengers?.[0]?.baggages || [];
+                      const checkedCount = baggages.filter(b => b.type === 'checked').reduce((acc, curr) => acc + (curr.quantity || 1), 0);
+                      const carryOnCount = baggages.filter(b => b.type === 'carry_on').reduce((acc, curr) => acc + (curr.quantity || 1), 0);
+                      
+                      let bagText = '';
+                      if (checkedCount === 0 && carryOnCount === 0) bagText = 'Personal item only (No bags)';
+                      else {
+                         const pl = [];
+                         if (carryOnCount > 0) pl.push(`${carryOnCount} carry-on`);
+                         if (checkedCount > 0) pl.push(`${checkedCount} checked`);
+                         bagText = pl.join(' & ') + ' bags';
+                      }
+
+                      return (
+                        <div key={i} className="flex flex-col gap-1 border-l-2 border-indigo-100 pl-4 py-1">
+                          <p className="text-sm text-gray-800 font-bold">
+                            <span className="text-gray-400 font-medium">Leg {i+1}: </span> 
+                            {new Date(slice.segments[0].departing_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} {slice.origin.iata_code} ➔ {new Date(slice.segments[slice.segments.length-1].arriving_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} {slice.destination.iata_code}
+                          </p>
+                          <p className="text-xs text-gray-500 font-semibold gap-2 flex items-center">
+                            <span className="bg-gray-100 px-2 py-0.5 rounded-full text-indigo-600">{slice.duration}</span>
+                            {slice.segments.length > 1 && <span className="text-amber-500">{slice.segments.length - 1} Stop(s)</span>}
+                            <span className="text-indigo-600">👜 {bagText}</span>
+                          </p>
+                        </div>
+                      );
+                    })}
                   </div>
                   <div className="text-right border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-8 w-full md:w-auto">
                     <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Total</p>
@@ -356,8 +371,17 @@ const DuffelBookingFlow = ({ user }) => {
                                   layover = `${Math.floor(m / 60) > 0 ? Math.floor(m / 60) + 'h ' : ''}${m % 60}m`;
                                }
                                
-                               const bagsCount = seg.passengers?.[0]?.baggages?.filter(b=>b.type==='checked')?.length || 0;
-                               const carryOnCount = seg.passengers?.[0]?.baggages?.filter(b=>b.type==='carry_on')?.length || 1;
+                               const checkedCount = seg.passengers?.[0]?.baggages?.filter(b=>b.type==='checked')?.reduce((a, b) => a + (b.quantity || 1), 0) || 0;
+                               const carryOnCount = seg.passengers?.[0]?.baggages?.filter(b=>b.type==='carry_on')?.reduce((a, b) => a + (b.quantity || 1), 0) || 0;
+
+                               let bagText = '';
+                               if (checkedCount === 0 && carryOnCount === 0) bagText = 'Personal item only (No bags)';
+                               else {
+                                  const pl = [];
+                                  if (carryOnCount > 0) pl.push(`${carryOnCount} carry-on bag${carryOnCount > 1 ? 's' : ''}`);
+                                  if (checkedCount > 0) pl.push(`${checkedCount} checked bag${checkedCount > 1 ? 's' : ''}`);
+                                  bagText = pl.join(' iyo ');
+                               }
 
                                return (
                                  <React.Fragment key={seg.id}>
@@ -381,7 +405,7 @@ const DuffelBookingFlow = ({ user }) => {
                                           Flight duration: <span className="text-gray-500">{seg.duration.replace(/^PT/,'').replace(/H/,'h ').replace(/M/,'m')}</span> | {slice.fare_brand_name || seg.passengers?.[0]?.cabin_class || 'Economy'} | {seg.operating_carrier?.name || 'Airline'} | {seg.aircraft?.name || 'Aircraft unconfirmed'} | {seg.operating_carrier_flight_number}
                                         </p>
                                         <p className="text-sm font-black text-indigo-600">
-                                          👜 {carryOnCount} carry-on bag iyo {bagsCount} checked bag{bagsCount > 1 ? 's' : ''}
+                                          👜 {bagText}
                                         </p>
                                       </div>
                                    </div>
