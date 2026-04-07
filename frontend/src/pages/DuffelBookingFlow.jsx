@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { duffelSearchFlights, getDuffelOffer, createDuffelBooking } from '../services/api';
 import { useNavigate, useLocation } from 'react-router-dom';
 import DuffelPaymentIntegration from '../components/DuffelPaymentIntegration';
@@ -55,6 +55,14 @@ const DuffelBookingFlow = ({ user }) => {
         fetchOffers({ preventDefault: () => {} });
      }
   }, []);
+
+  const resultsRef = useRef(null);
+
+  useEffect(() => {
+     if (resultsRef.current) {
+        resultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+     }
+  }, [step]);
 
   const [offers, setOffers] = useState([]);
   const [selectedOffer, setSelectedOffer] = useState(null);
@@ -203,7 +211,7 @@ const DuffelBookingFlow = ({ user }) => {
     <ErrorBoundary>
       <main className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50/30 py-12 px-4 sm:px-6 lg:px-8">
         {/* ... existing content ... */}
-        <div className="max-w-5xl mx-auto space-y-8">
+        <div ref={resultsRef} className="max-w-5xl mx-auto space-y-8">
 
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-black text-gray-900 tracking-tight">ZamGo Live Booking</h1>
