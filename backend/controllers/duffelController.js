@@ -81,7 +81,9 @@ const searchFlights = async (req, res) => {
     // Apply ZamGo Markup to each offer instantly
     limitedOffers = limitedOffers.map(offer => {
       const base = parseFloat(offer.total_amount);
-      const markup = 30; // Fixed £30 markup
+      let markup = 30;
+      if (base < 70) markup = 10;
+      else if (base < 100) markup = 15;
       
       return {
         ...offer,
@@ -119,8 +121,10 @@ const priceCheck = async (req, res) => {
 
     const base = parseFloat(total_amount);
 
-    // ZamGo Fixed Markup Logic
-    const markup = 30;       // Fixed £30 markup
+    // ZamGo Tiered Markup Logic
+    let markup = 30;
+    if (base < 70) markup = 10;
+    else if (base < 100) markup = 15;
 
     const finalPrice = (base + markup).toFixed(2);
 
@@ -186,9 +190,11 @@ const getOffer = async (req, res) => {
       }))
     }));
 
-    // ZamGo Fixed Markup Logic (re-applied to retain markup in checkout)
+    // ZamGo Tiered Markup Logic (re-applied to retain markup in checkout)
     const base = parseFloat(total_amount);
-    const markup = 30; // Fixed £30 markup
+    let markup = 30;
+    if (base < 70) markup = 10;
+    else if (base < 100) markup = 15;
 
     const finalAmount = (base + markup).toFixed(2);
 
@@ -551,8 +557,10 @@ const createPaymentIntent = async (req, res) => {
         });
     }
 
-    // 3. Compute ZamGo Fixed Markup Logic
-    const markup = 30; // Fixed £30 markup
+    // 3. Compute ZamGo Tiered Markup Logic
+    let markup = 30;
+    if (base < 70) markup = 10;
+    else if (base < 100) markup = 15;
 
     // Wadarta guud: Taxes + Fare + Markup + Services
     const totalAmount = base + markup + servicesTotal;
