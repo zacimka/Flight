@@ -17,7 +17,9 @@ const {
   getAirlineCredits,
   getAirlineCredit,
   createAirlineCredit,
-  generateClientKey
+  generateClientKey,
+  createPaymentIntent,
+  confirmBooking
 } = require('../controllers/duffelController');
 
 const router = express.Router();
@@ -33,6 +35,8 @@ router.get('/offer/:id', getOffer);
 router.post('/webhooks', handleWebhook);
 
 // ── Protected — booking ───────────────────────────────────────────────────
+router.post('/create-payment-intent', protect, createPaymentIntent);
+router.post('/confirm-booking', protect, confirmBooking);
 router.post('/create-booking', protect, createBooking);
 router.get('/orders/:order_id', protect, getOrder);
 router.get('/orders/:order_id/services', protect, getOrderServices);

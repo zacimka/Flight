@@ -1,4 +1,5 @@
 const duffel = require('../services/duffelService');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 // ─────────────────────────────────────────────────────────────────────────
 // 1. AIRPORT SEARCH (PLACES API)
@@ -75,7 +76,23 @@ const searchFlights = async (req, res) => {
       requestPayload.airline_credit_ids = airline_credit_ids;
 
     const offerRequest = await duffel.offerRequests.create(requestPayload);
-    const limitedOffers = (offerRequest.data.offers || []).slice(0, 50);
+    let limitedOffers = (offerRequest.data.offers || []).slice(0, 50);
+
+    // Apply ZamGo Markup to each offer instantly
+    limitedOffers = limitedOffers.map(offer => {
+      const base = parseFloat(offer.total_amount);
+      let markup = 0;
+      if (base < 100) markup = 15;
+      else if (base < 500) markup = 30;
+      else markup = 50;
+      
+      return {
+        ...offer,
+        total_amount: (base + markup).toFixed(2),
+        base_amount_original: base.toFixed(2),
+        margin_applied: markup
+      };
+    });
 
     res.json({
       data: {
@@ -179,10 +196,21 @@ const getOffer = async (req, res) => {
       }))
     }));
 
+    // ZamGo Tiered Fixed Markup Logic (re-applied to retain markup in checkout)
+    const base = parseFloat(total_amount);
+    let markup = 0;
+    if (base < 100) markup = 15;
+    else if (base < 500) markup = 30;
+    else markup = 50;
+
+    const finalAmount = (base + markup).toFixed(2);
+
     res.json({
       data: {
         offer_id: offerId,
-        total_amount,
+        total_amount: finalAmount,
+        base_amount_original: base.toFixed(2),
+        margin_applied: markup,
         total_currency,
         conditions_readable: parsedConditions,
         formatted_slices: formattedSlices,
@@ -217,18 +245,30 @@ const createBooking = async (req, res) => {
       return res.status(400).json({ message: 'Missing offer_id or passengers' });
 
     const orderData = {
-      type: 'instant', // Always execute booking directly based on user spec
+      type: req.body.order_type || 'instant',
       selected_offers: [offer_id],
-      passengers: passengers.map(p => ({
-        id: p.id,
-        given_name: p.given_name,
-        family_name: p.family_name,
-        born_on: p.born_on,
-        gender: p.gender,
-        title: p.title,
-        email: p.email,
-        phone_number: p.phone_number
-      })),
+      passengers: passengers.map(p => {
+        const passObj = {
+          id: p.id,
+          given_name: p.given_name,
+          family_name: p.family_name,
+          born_on: p.born_on,
+          gender: p.gender,
+          title: p.title,
+          email: p.email,
+          phone_number: p.phone_number
+        };
+        // Option 2: Append passport via identity_documents
+        if (p.passport_number && p.passport_country && p.passport_expiry) {
+           passObj.identity_documents = [{
+             type: 'passport',
+             unique_identifier: p.passport_number,
+             issuing_country_code: p.passport_country,
+             expires_on: p.passport_expiry
+           }];
+        }
+        return passObj;
+      }),
       metadata: {
          ...metadata,
          agency: "Zamgo Travel Ltd",
@@ -237,24 +277,43 @@ const createBooking = async (req, res) => {
       }
     };
 
-    // Ancillary services (seats, bags)
-    if (services && Array.isArray(services) && services.length > 0)
+    // We must fetch the bare Duffel offer to know exactly what Duffel expects us to pay (excluding our Markup)
+    const offer = await duffel.offers.get(offer_id, { return_available_services: true });
+    let duffelTotalToPay = parseFloat(offer.data.total_amount);
+    
+    // Ancillary services (seats, bags) - Add their raw costs
+    if (services && Array.isArray(services) && services.length > 0) {
       orderData.services = services;
+      services.forEach(selSvc => {
+          const foundOfferSvc = offer.data.available_services.find(as => as.id === selSvc.id);
+          if (foundOfferSvc) {
+              duffelTotalToPay += (parseFloat(foundOfferSvc.total_amount) * selSvc.quantity);
+          }
+      });
+    }
 
     // SELECT PAYMENT METHOD
-    // payment_type comes from frontend ('balance', 'cash', 'card')
+    // payment_type comes from frontend ('balance', 'cash', 'card', 'arc_bsp_cash')
     let paymentPayload = [];
-    if (payment_type === 'balance' || payment_type === 'cash') {
-      // Both Balance and Cash bookings pull from Zamgo's internal Duffel Balance
+    if (payment_type === 'balance') {
       paymentPayload.push({
           type: 'balance',
-          amount: total_amount.toString(),
-          currency: 'GBP'
+          amount: duffelTotalToPay.toFixed(2).toString(),
+          currency: offer.data.total_currency
+      });
+    } else if (payment_type === 'cash' || payment_type === 'arc_bsp_cash') {
+      // ARC/BSP Cash means the agency settles via IATA/ARC outside of Duffel balance
+      paymentPayload.push({
+          type: 'arc_bsp_cash',
+          amount: duffelTotalToPay.toFixed(2).toString(),
+          currency: offer.data.total_currency
       });
     } else if (payment_type === 'card' && payment_id) {
-       // Customer's Credit Card mapped via 3DSession or Component ID
+       // Using Duffel Card Component internally
        paymentPayload.push({
           type: 'card',
+          amount: duffelTotalToPay.toFixed(2).toString(),
+          currency: offer.data.total_currency,
           id: payment_id
        });
     }
@@ -264,11 +323,12 @@ const createBooking = async (req, res) => {
       paymentPayload.push({ type: 'airline_credits', id: credit_id });
     }
 
-    if (paymentPayload.length === 0) {
-      return res.status(400).json({ message: 'Valid payment_type (card, balance, cash) required' });
+    if (req.body.order_type !== 'hold') {
+        if (paymentPayload.length === 0) {
+          return res.status(400).json({ message: 'Valid payment_type (card, balance, cash) required for instant order' });
+        }
+        orderData.payments = paymentPayload;
     }
-
-    orderData.payments = paymentPayload;
 
     const order = await duffel.orders.create(orderData);
     res.status(201).json({
@@ -481,6 +541,147 @@ const generateClientKey = async (req, res) => {
   }
 };
 
+// ─────────────────────────────────────────────────────────────────────────
+// 12. STRIPE PAYMENT INTENT (ZAMGO CUSTOM GATEWAY)
+// ─────────────────────────────────────────────────────────────────────────
+const createPaymentIntent = async (req, res) => {
+  try {
+    const { offer_id, services } = req.body;
+    if (!offer_id) return res.status(400).json({ message: 'Missing offer_id' });
+
+    // 1. Fetch exact Duffel Offer Price
+    const offer = await duffel.offers.get(offer_id, { return_available_services: true });
+    let base = parseFloat(offer.data.total_amount);
+
+    // 2. Add raw cost of ancillary services
+    let servicesTotal = 0;
+    if (services && Array.isArray(services)) {
+        services.forEach(selSvc => {
+            const foundOfferSvc = offer.data.available_services.find(as => as.id === selSvc.id);
+            if (foundOfferSvc) {
+                servicesTotal += (parseFloat(foundOfferSvc.total_amount) * selSvc.quantity);
+            }
+        });
+    }
+
+    // 3. Compute ZamGo Tiered Fixed Markup Logic
+    let markup = 0;
+    if (base < 100) markup = 15;
+    else if (base < 500) markup = 30;
+    else markup = 50;
+
+    // Wadarta guud: Taxes + Fare + Markup + Services
+    const totalAmount = base + markup + servicesTotal;
+    
+    // 4. Create Stripe Payment Intent explicitly using 'gbp'
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(totalAmount * 100), // convert to cents / pence
+      currency: 'gbp',
+      payment_method_types: ['card'],
+      metadata: {
+        offer_id: offer_id,
+        markup: markup.toString(),
+        base_fare: base.toString(),
+        services_total: servicesTotal.toString()
+      }
+    });
+
+    res.json({
+      success: true,
+      clientSecret: paymentIntent.client_secret,
+      totalAmount: totalAmount.toFixed(2),
+      currency: 'GBP'
+    });
+  } catch (error) {
+    console.error('Stripe Payment Intent Error:', error);
+    res.status(500).json({ message: 'Stripe Gateway Error', details: error.message });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// 13. STRIPE CONFIRM BOOKING
+// ─────────────────────────────────────────────────────────────────────────
+const confirmBooking = async (req, res) => {
+  try {
+    const { paymentIntentId, offer_id, passengers, services, metadata } = req.body;
+    
+    // 1. Verify Payment Intent is successful
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    if (paymentIntent.status !== 'succeeded') {
+       return res.status(400).json({ message: 'Payment not successful yet' });
+    }
+
+    // 2. Fetch raw Duffel Offer Price
+    const offer = await duffel.offers.get(offer_id, { return_available_services: true });
+    let duffelTotalToPay = parseFloat(offer.data.total_amount);
+    
+    // Add raw cost of ancillary services
+    if (services && Array.isArray(services) && services.length > 0) {
+        services.forEach(selSvc => {
+            const foundOfferSvc = offer.data.available_services.find(as => as.id === selSvc.id);
+            if (foundOfferSvc) {
+                duffelTotalToPay += (parseFloat(foundOfferSvc.total_amount) * selSvc.quantity);
+            }
+        });
+    }
+
+    const orderData = {
+      type: 'instant',
+      selected_offers: [offer_id],
+      passengers: passengers.map(p => {
+        const passObj = {
+          id: p.id,
+          given_name: p.given_name,
+          family_name: p.family_name,
+          born_on: p.born_on,
+          gender: p.gender,
+          title: p.title,
+          email: p.email,
+          phone_number: p.phone_number
+        };
+        if (p.passport_number && p.passport_country && p.passport_expiry) {
+           passObj.identity_documents = [{
+             type: 'passport',
+             unique_identifier: p.passport_number,
+             issuing_country_code: p.passport_country,
+             expires_on: p.passport_expiry
+           }];
+        }
+        return passObj;
+      }),
+      metadata: {
+         ...metadata,
+         stripe_payment_intent: paymentIntentId,
+         agency: "Zamgo Travel Ltd",
+         payment_source: "stripe_card",
+         profit_margin: "Stripe Payment Captured"
+      }
+    };
+
+    if (services && Array.isArray(services) && services.length > 0) {
+      orderData.services = services;
+    }
+
+    // 3. Issue ticket via arc_bsp_cash directly to Duffel as instructed
+    orderData.payments = [{
+        type: 'arc_bsp_cash',
+        amount: duffelTotalToPay.toFixed(2).toString(),
+        currency: offer.data.total_currency
+    }];
+
+    const order = await duffel.orders.create(orderData);
+    
+    res.status(201).json({
+      success: true,
+      data: order.data,
+      message: 'Booking confirmed via Stripe and arc_bsp_cash'
+    });
+  } catch (error) {
+    console.error('Stripe Confirm Booking Error:', error);
+    res.status(500).json({ message: 'Booking Failed', details: error.message });
+  }
+};
+
 module.exports = {
   getAirports,
   searchFlights,
@@ -498,5 +699,7 @@ module.exports = {
   getAirlineCredits,
   getAirlineCredit,
   createAirlineCredit,
-  generateClientKey
+  generateClientKey,
+  createPaymentIntent,
+  confirmBooking
 };

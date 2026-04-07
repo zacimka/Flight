@@ -58,6 +58,15 @@ const FlightSearchCard = () => {
     const originIata = extractIata(criteria.origin);
     const destIata = extractIata(criteria.destination);
 
+    // Validate mandatory fields
+    if (!originIata || !destIata || !criteria.departureDate) {
+        setError("Fadlan buuxi meelaha bannaan (Origin, Destination, Date)");
+        return;
+    }
+
+    // Clear any previous error
+    setError('');
+
     // Pass the state to the DuffelBookingFlow so it can auto-run
     navigate('/duffel', { 
       state: { 

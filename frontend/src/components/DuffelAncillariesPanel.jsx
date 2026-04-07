@@ -15,6 +15,7 @@ import { getDuffelClientKey } from '../services/api';
 const DuffelAncillariesPanel = ({
   offerId,
   passengers,
+  services,
   onServicesReady,
   markupPercent = 0,
   markupFixed = 0
@@ -54,14 +55,14 @@ const DuffelAncillariesPanel = ({
 
   const handlePayloadReady = (payload) => {
     // payload contains { services: [{ id, quantity }], ... }
-    const services = payload.services || [];
-    const rawTotal = services.reduce((sum, s) => {
+    const selected = payload.services || [];
+    const rawTotal = selected.reduce((sum, s) => {
       const unitPrice = parseFloat(s.total_amount || s.amount || 0);
       return sum + unitPrice * (s.quantity || 1);
     }, 0);
     const { amount: markedUpTotal, currency } = applyMarkup(rawTotal, payload.currency);
-    setSelectedServices(services);
-    onServicesReady?.(services, { total: markedUpTotal, currency, raw: rawTotal.toFixed(2) });
+    setSelectedServices(selected);
+    onServicesReady?.(selected, { total: markedUpTotal, currency, raw: rawTotal.toFixed(2) });
   };
 
   if (loading) return (
@@ -88,12 +89,13 @@ const DuffelAncillariesPanel = ({
         )}
       </div>
 
-      {clientKey && (
+      {clientKey && services?.length > 0 ? (
         <div className="rounded-3xl overflow-hidden border border-gray-100 shadow-sm">
           <DuffelAncillaries
             offer_id={offerId}
             client_key={clientKey}
             passengers={passengers}
+            services={['bags', 'seats']}
             onPayloadReady={handlePayloadReady}
             styles={{
               accentColor: '#4f46e5',           // Indigo – ZamGo brand
@@ -102,7 +104,11 @@ const DuffelAncillariesPanel = ({
             }}
           />
         </div>
-      )}
+      ) : clientKey ? (
+        <div className="bg-gray-50 text-gray-500 p-8 rounded-2xl border border-gray-100 text-center font-bold">
+           No extra services are currently available for this specific flight.
+        </div>
+      ) : null}
 
       {selectedServices.length > 0 && (
         <div className="bg-indigo-50 rounded-2xl p-4 flex items-center gap-3 border border-indigo-100">
