@@ -29,6 +29,18 @@ app.use("/api/webhooks/stripe", express.raw({ type: "application/json" }));
 // Status Check
 app.get("/api/status", (req, res) => res.json({ status: "ZamGo Travel API is online", timestamp: new Date() }));
 
+// Environment Variables Diagnostic Route (Shows keys exist without exposing values)
+app.get("/api/env-check", (req, res) => {
+  res.json({
+    status: "Diagnostics Running",
+    DUFFEL_API_KEY_EXISTS: !!process.env.DUFFEL_API_KEY,
+    STRIPE_SECRET_KEY_EXISTS: !!process.env.STRIPE_SECRET_KEY,
+    MONGO_URI_EXISTS: !!process.env.MONGO_URI,
+    NODE_ENV: process.env.NODE_ENV || 'development',
+    server_time: new Date()
+  });
+});
+
 // Routes
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/duffel", require("./routes/duffel"));
