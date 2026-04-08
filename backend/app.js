@@ -25,7 +25,9 @@ if (process.env.DUFFEL_ACCESS_TOKEN) process.env.DUFFEL_API_KEY = process.env.DU
 connectDB();
 
 const app = express();
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+}));
 const corsOptions = {
   origin: function (origin, callback) {
     // Reflect exactly the origin that is asking to bypass strictly exact string mismatches
