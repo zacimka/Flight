@@ -8,17 +8,33 @@ const errorHandler = require("./middlewares/errorHandler");
 const rateLimiter = require("./middlewares/rateLimiter");
 
 dotenv.config({ path: require("path").join(__dirname, ".env") });
+
+// Strict Environment Validations
+if (!process.env.MONGO_URI && !process.env.MONGODB_URI) {
+  console.error("❌ CRITICAL ERROR: MongoDB URI is missing from environment variables!");
+  process.exit(1);
+}
+if (!process.env.DUFFEL_API_KEY && !process.env.DUFFEL_ACCESS_TOKEN) {
+  console.error("❌ CRITICAL ERROR: Duffel API Token is missing from environment variables!");
+  process.exit(1);
+}
+// Normalize env aliases for seamless deployment
+if (process.env.MONGODB_URI) process.env.MONGO_URI = process.env.MONGODB_URI;
+if (process.env.DUFFEL_ACCESS_TOKEN) process.env.DUFFEL_API_KEY = process.env.DUFFEL_ACCESS_TOKEN;
+
 connectDB();
 
 const app = express();
 app.use(helmet());
 const allowedOrigins = ['http://localhost:5173', 'https://www.zamgotravel.com', 'https://zamgotravel.com', 'https://flight-8tvi.onrender.com'];
-app.use(cors({ 
+const corsOptions = {
   origin: allowedOrigins,
   credentials: true,
-  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+};
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Safari explicitly requires preflight answers
 app.use(express.json({ limit: "10mb" }));
 app.use(morgan("dev"));
 app.use(rateLimiter);

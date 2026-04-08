@@ -131,7 +131,11 @@ const DuffelBookingFlow = ({ user }) => {
         setError('Ma jiro duulimaad taariikhdan, fadlan isku day maalin kale.');
       else setStep('SELECT_OFFER');
     } catch (err) {
-      setError(err.response?.data?.details || err.message || 'Search failed.');
+      if (err.message && err.message.toLowerCase().includes('network error')) {
+         setError('Xiriirka server-ka waa laga xiray Safari, fadlan dib u load-garee bogga ama isticmaal Chrome.');
+      } else {
+         setError(err.response?.data?.details || err.message || 'Search failed.');
+      }
     } finally {
       setLoading(false);
     }
@@ -260,7 +264,7 @@ const DuffelBookingFlow = ({ user }) => {
         {step === 'SEARCH' && loading && (
           <div className="bg-white p-16 rounded-[2rem] shadow-xl border border-gray-100 flex flex-col items-center justify-center space-y-6">
              <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
-             <h2 className="text-2xl font-black text-gray-900">Raadin Ayaa Socota...</h2>
+             <h2 className="text-2xl font-black text-gray-900">Loading flights...</h2>
              <p className="text-gray-500 font-medium">Searching live Duffel inventory for the best prices.</p>
           </div>
         )}

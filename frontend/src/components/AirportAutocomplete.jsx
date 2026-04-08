@@ -132,8 +132,8 @@ const AirportAutocomplete = ({ label, placeholder, value, onChange }) => {
       {isOpen && query.trim().length >= 2 && !loading && results.length === 0 && (
         <div className="absolute z-20 w-full mt-2 bg-white/95 backdrop-blur-md border border-red-100 rounded-2xl shadow-xl p-6 text-sm text-gray-500 text-center animate-fade-in">
           <div className="text-2xl mb-2">📍</div>
-          <p className="font-bold text-gray-900">Please try again</p>
-          <p className="text-xs mt-1">Make sure you spell the city or IATA code correctly (e.g., LHR, DXB, MGQ)</p>
+          <p className="font-bold text-gray-900">Garoonkaas diyaarad kama tagto</p>
+          <p className="text-xs mt-1">Fadlan hubi higgaadda magaca Magaalada ama IATA code (tusaale., LHR, DXB, MGQ)</p>
         </div>
       )}
     </div>
