@@ -9,7 +9,7 @@ function resolveApiBaseURL() {
      if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
         return 'http://localhost:5002/api';
      }
-     return 'https://flight-8tvi.onrender.com/api';
+     return 'https://flight-1-ca15.onrender.com/api';
   }
   if (raw.endsWith('/api')) return raw;
   return `${raw}/api`;

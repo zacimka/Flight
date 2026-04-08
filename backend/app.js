@@ -31,6 +31,7 @@ app.use(helmet({
 const allowedOrigins = [
   'https://zamgotravel.com',
   'https://www.zamgotravel.com',
+  'https://flight-1-ca15.onrender.com',
   'https://flight-8tvi.onrender.com',
   'http://localhost:5173',
   'http://localhost:3001'
