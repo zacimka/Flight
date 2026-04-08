@@ -132,7 +132,7 @@ const DuffelBookingFlow = ({ user }) => {
       else setStep('SELECT_OFFER');
     } catch (err) {
       if (err.message && err.message.toLowerCase().includes('network error')) {
-         setError('Xiriirka server-ka waa laga xiray Safari, fadlan dib u load-garee bogga ama isticmaal Chrome.');
+         setError('Khadka Internet-kaaga ama Xiriirka Server-ka ayaa go\'ay. Fadlan dib u Load-garee bogga.');
       } else {
          setError(err.response?.data?.details || err.message || 'Search failed.');
       }

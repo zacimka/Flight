@@ -3,7 +3,12 @@ import axios from 'axios';
 /** Backend mounts all routes under `/api` (see backend/app.js). Accept env as origin-only or full API root. */
 function resolveApiBaseURL() {
   const raw = import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/$/, '') || '';
-  if (!raw) return '/api';
+  if (!raw) {
+     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return 'http://localhost:5002/api';
+     }
+     return 'https://flight-8tvi.onrender.com/api';
+  }
   if (raw.endsWith('/api')) return raw;
   return `${raw}/api`;
 }
