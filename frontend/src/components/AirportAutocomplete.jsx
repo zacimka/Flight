@@ -1,6 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { searchAirports } from '../services/api';
 
+const MAJOR_AIRPORTS = [
+  { city_name: 'London', iata_code: 'LHR', airport_name: 'Heathrow Airport' },
+  { city_name: 'Mogadishu', iata_code: 'MGQ', airport_name: 'Aden Adde Intl' },
+  { city_name: 'Istanbul', iata_code: 'IST', airport_name: 'Istanbul Airport' },
+  { city_name: 'Dubai', iata_code: 'DXB', airport_name: 'Dubai Intl' },
+  { city_name: 'Hargeisa', iata_code: 'HGA', airport_name: 'Egal Intl' },
+  { city_name: 'Nairobi', iata_code: 'NBO', airport_name: 'Jomo Kenyatta Intl' }
+];
+
 const AirportAutocomplete = ({ label, placeholder, value, onChange }) => {
   const [query, setQuery] = useState(value || '');
   const [results, setResults] = useState([]);
@@ -36,12 +45,19 @@ const AirportAutocomplete = ({ label, placeholder, value, onChange }) => {
       setLoading(true);
       try {
         const res = await searchAirports(trimmedQuery);
-        // Axel: duffelController returns { data: [{...}] }
         const list = res.data?.data || res.data;
-        setResults(Array.isArray(list) ? list : []);
+        if (Array.isArray(list) && list.length > 0) {
+           setResults(list);
+        } else {
+           throw new Error("No results from API");
+        }
       } catch (err) {
-        console.error('Failed to fetch airports', err);
-        setResults([]);
+        console.error('Failed to fetch airports, using standard fallback', err);
+        const fallback = MAJOR_AIRPORTS.filter(a => 
+           a.city_name.toLowerCase().includes(trimmedQuery.toLowerCase()) || 
+           a.iata_code.toLowerCase().includes(trimmedQuery.toLowerCase())
+        );
+        setResults(fallback);
       } finally {
         setLoading(false);
       }
@@ -116,8 +132,8 @@ const AirportAutocomplete = ({ label, placeholder, value, onChange }) => {
       {isOpen && query.trim().length >= 2 && !loading && results.length === 0 && (
         <div className="absolute z-20 w-full mt-2 bg-white/95 backdrop-blur-md border border-red-100 rounded-2xl shadow-xl p-6 text-sm text-gray-500 text-center animate-fade-in">
           <div className="text-2xl mb-2">📍</div>
-          <p className="font-bold text-gray-900">No airports found matching "{query}"</p>
-          <p className="text-xs mt-1">Try searching by city name or IATA code (e.g., LHR, DXB)</p>
+          <p className="font-bold text-gray-900">Please try again</p>
+          <p className="text-xs mt-1">Make sure you spell the city or IATA code correctly (e.g., LHR, DXB, MGQ)</p>
         </div>
       )}
     </div>
