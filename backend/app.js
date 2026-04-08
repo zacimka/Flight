@@ -28,17 +28,26 @@ const app = express();
 app.use(helmet({
   crossOriginResourcePolicy: false,
 }));
+const allowedOrigins = [
+  'https://zamgotravel.com',
+  'https://www.zamgotravel.com',
+  'https://flight-8tvi.onrender.com',
+  'http://localhost:5173',
+  'http://localhost:3001'
+];
 const corsOptions = {
   origin: function (origin, callback) {
-    // Reflect exactly the origin that is asking to bypass strictly exact string mismatches
-    callback(null, origin || true);
+    // Allow requests with no origin (curl, mobile apps, server-to-server)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(null, true); // Failsafe: allow all while debugging
   },
   credentials: true,
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
 };
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // Safari explicitly requires preflight answers
+app.options('*', cors(corsOptions));
 app.use(express.json({ limit: "10mb" }));
 app.use(morgan("dev"));
 app.use(rateLimiter);
