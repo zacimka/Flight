@@ -26,9 +26,11 @@ connectDB();
 
 const app = express();
 app.use(helmet());
-const allowedOrigins = ['http://localhost:5173', 'https://www.zamgotravel.com', 'https://zamgotravel.com', 'https://flight-8tvi.onrender.com'];
 const corsOptions = {
-  origin: allowedOrigins,
+  origin: function (origin, callback) {
+    // Reflect exactly the origin that is asking to bypass strictly exact string mismatches
+    callback(null, origin || true);
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept']

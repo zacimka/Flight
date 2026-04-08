@@ -47,9 +47,10 @@ const FlightSearchCard = () => {
 
   const extractIata = (str) => {
     if(!str) return '';
-    const match = str.match(/\(([^)]+)\)/); // Matches content inside parentheses
-    if(match && match[1].length === 3) return match[1];
-    return str.slice(-3).toUpperCase();
+    const cleanStr = str.trim();
+    const match = cleanStr.match(/\(([^)]+)\)/); // Matches content inside parentheses
+    if(match && match[1].length === 3) return match[1].toUpperCase();
+    return cleanStr.slice(-3).toUpperCase();
   };
 
   const handleSearch = async (e) => {
