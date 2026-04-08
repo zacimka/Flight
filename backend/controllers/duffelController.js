@@ -65,7 +65,7 @@ const searchFlights = async (req, res) => {
       slices,
       passengers,
       cabin_class: cabin_class || 'economy',
-      supplier_timeout: 10000,
+      supplier_timeout: 30000,
       max_connections: max_connections !== undefined ? parseInt(max_connections) : undefined,
     };
 

@@ -12,7 +12,13 @@ connectDB();
 
 const app = express();
 app.use(helmet());
-app.use(cors());
+const allowedOrigins = ['http://localhost:5173', 'https://www.zamgotravel.com', 'https://zamgotravel.com', 'https://flight-8tvi.onrender.com'];
+app.use(cors({ 
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json({ limit: "10mb" }));
 app.use(morgan("dev"));
 app.use(rateLimiter);

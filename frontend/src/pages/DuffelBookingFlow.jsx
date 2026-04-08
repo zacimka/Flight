@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { duffelSearchFlights, getDuffelOffer, createDuffelBooking } from '../services/api';
+import { duffelSearchFlights, getDuffelOffer, createDuffelBooking, confirmDuffelBooking } from '../services/api';
 import { useNavigate, useLocation } from 'react-router-dom';
 import DuffelPaymentIntegration from '../components/DuffelPaymentIntegration';
 import DuffelAncillariesPanel from '../components/DuffelAncillariesPanel';
@@ -196,7 +196,21 @@ const DuffelBookingFlow = ({ user }) => {
          payload.services = [];
       }
 
-      const res = await createDuffelBooking(payload, user.token);
+      let res;
+      if (paymentData.type === 'stripe' && paymentData.paymentIntentId) {
+          const stripePayload = {
+             paymentIntentId: paymentData.paymentIntentId,
+             offer_id: payload.offer_id,
+             passengers: payload.passengers,
+             services: payload.services,
+             metadata: payload.metadata
+          };
+          res = await confirmDuffelBooking(stripePayload, user.token);
+      } else {
+          // Fallback originally for "hold" or other non-stripe setups
+          res = await createDuffelBooking(payload, user.token);
+      }
+
       navigate('/order-confirmation', { state: { booking: res.data.data } });
     } catch (err) {
       setError(err.response?.data?.debug || err.response?.data?.details || err.message || 'Booking failed.');
@@ -615,6 +629,7 @@ const DuffelBookingFlow = ({ user }) => {
                 <p className="text-red-500 font-bold text-sm bg-red-50 p-4 rounded-xl">You must be logged in to complete payment.</p>
               ) : (
                 <DuffelPaymentIntegration
+                  user={user}
                   offerId={selectedOffer?.offer_id}
                   totalAmount={(parseFloat(selectedOffer.total_amount) + parseFloat(ancillaryTotal?.total || 0)).toFixed(2)}
                   totalCurrency={selectedOffer?.total_currency}

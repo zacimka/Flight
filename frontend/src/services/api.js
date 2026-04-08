@@ -8,7 +8,7 @@ function resolveApiBaseURL() {
   return `${raw}/api`;
 }
 
-const API = axios.create({ baseURL: resolveApiBaseURL() });
+const API = axios.create({ baseURL: resolveApiBaseURL(), timeout: 30000 });
 
 export const register = (payload) => API.post('/auth/register', payload);
 export const login = (payload) => API.post('/auth/login', payload);
@@ -33,6 +33,10 @@ export const getDuffelOffer = (id) => API.get(`/duffel/offer/${id}`);
 export const getDuffelClientKey = () => API.get('/duffel/client-key');
 export const createDuffelBooking = (payload, token) =>
   API.post('/duffel/create-booking', payload, { headers: { Authorization: `Bearer ${token}` } });
+export const createDuffelPaymentIntent = (payload, token) =>
+  API.post('/duffel/create-payment-intent', payload, { headers: { Authorization: `Bearer ${token}` } });
+export const confirmDuffelBooking = (payload, token) =>
+  API.post('/duffel/confirm-booking', payload, { headers: { Authorization: `Bearer ${token}` } });
 
 // Orders & post-booking
 export const getDuffelOrder = (orderId, token) =>
