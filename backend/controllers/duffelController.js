@@ -457,7 +457,9 @@ const createCancellationQuote = async (req, res) => {
   try {
     const { order_id } = req.body;
     if (!order_id) return res.status(400).json({ message: 'order_id required' });
+    
     const quote = await duffel.orderCancellations.create({ order_id });
+    
     res.status(201).json({
       success: true,
       data: {
@@ -470,7 +472,20 @@ const createCancellationQuote = async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Failed to create cancellation quote', details: error.errors || error.message });
+    console.error('Cancellation Quote Error:', JSON.stringify(error.errors || error.message, null, 2));
+    
+    let userMessage = 'Cillad ayaa dhacday soo saarista lacagta kuu soo laabanaysa.';
+    if (error.errors && error.errors.some(e => e.title === 'order_not_cancellable')) {
+      userMessage = 'Duulimaadkan lama joojin karo (Non-refundable). Fadlan la xiriir kooxda caawinta.';
+    } else if (error.errors && error.errors.some(e => e.title === 'order_already_cancelled')) {
+      userMessage = 'Dalabkan horay ayaa loo joojiyay.';
+    }
+
+    res.status(500).json({ 
+      success: false, 
+      message: userMessage, 
+      details: error.errors || error.message 
+    });
   }
 };
 
