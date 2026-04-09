@@ -20,7 +20,7 @@ if (!process.env.DUFFEL_API_KEY && !process.env.DUFFEL_ACCESS_TOKEN) {
 }
 // Normalize env aliases for seamless deployment
 if (process.env.MONGODB_URI) process.env.MONGO_URI = process.env.MONGODB_URI;
-if (process.env.DUFFEL_ACCESS_TOKEN) process.env.DUFFEL_API_KEY = process.env.DUFFEL_ACCESS_TOKEN;
+// if (process.env.DUFFEL_ACCESS_TOKEN) process.env.DUFFEL_API_KEY = process.env.DUFFEL_ACCESS_TOKEN;
 
 connectDB();
 
