@@ -444,8 +444,15 @@ const confirmOrderChange = async (req, res) => {
     const { change_id } = req.params;
     const { payment } = req.body;
     
-    // 1. Confirm the change in Duffel
-    const changeResponse = await duffel.orderChanges.confirm(change_id, { payment });
+    // 1. Create the order change from the offer
+    const createResponse = await duffel.orderChanges.create({
+       selected_order_change_offer_id: change_id
+    });
+    const orderChangeId = createResponse.data.id;
+
+    // 2. Confirm the change in Duffel (with payment if provided)
+    const confirmOptions = payment ? { payment } : {};
+    const changeResponse = await duffel.orderChanges.confirm(orderChangeId, confirmOptions);
     
     // 2. Fetch the updated full order to sync with database
     const updatedOrder = await duffel.orders.get(changeResponse.data.order_id);

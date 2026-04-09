@@ -30,14 +30,14 @@ const CARD_ELEMENT_OPTIONS = {
   }
 };
 
-const CustomCheckoutForm = ({ user, offerId, totalAmount, onPaymentReady, loadingBooking, errorBooking }) => {
+const CustomCheckoutForm = ({ user, offerId, totalAmount, onPaymentReady, loadingBooking, errorBooking, clientSecret: externalClientSecret }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [cardholderName, setCardholderName] = useState(user?.name || '');
   const [error, setError] = useState(errorBooking || null);
   const [loading, setLoading] = useState(false);
-  const [clientSecret, setClientSecret] = useState('');
-  const [finalPriceWithMarkup, setFinalPriceWithMarkup] = useState(0);
+  const [clientSecret, setClientSecret] = useState(externalClientSecret || '');
+  const [finalPriceWithMarkup, setFinalPriceWithMarkup] = useState(totalAmount || 0);
 
   // Initializing Payment Intent (Backend Calculates Markup + Returns Client Secret)
   useEffect(() => {
@@ -58,13 +58,14 @@ const CustomCheckoutForm = ({ user, offerId, totalAmount, onPaymentReady, loadin
         }
       }
     };
-    if (offerId && user?.token) fetchIntent();
+    if (offerId && user?.token && !externalClientSecret) fetchIntent();
     return () => { mounted = false; };
   }, [offerId, user?.token]);
 
   useEffect(() => {
      if (errorBooking) setError(errorBooking);
-  }, [errorBooking]);
+     if (externalClientSecret) setClientSecret(externalClientSecret);
+  }, [errorBooking, externalClientSecret]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

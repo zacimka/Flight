@@ -82,6 +82,7 @@ const DuffelBookingFlow = ({ user }) => {
   // ── ANCILLARY STATE ───────────────────────────────────────────────────────
   const [ancillaryServices, setAncillaryServices] = useState([]); // [{ id, quantity }]
   const [ancillaryTotal, setAncillaryTotal] = useState(null);     // { total, currency }
+  const [paymentSecret, setPaymentSecret] = useState(null);
 
   // ── HANDLERS ──────────────────────────────────────────────────────────────
   const set = (field) => (e) =>
@@ -634,7 +635,7 @@ const DuffelBookingFlow = ({ user }) => {
                   </h3>
                   <DuffelPaymentIntegration
                     clientSecret={paymentSecret}
-                    totalPrice={parseFloat(selectedOffer.new_total_amount)}
+                    totalAmount={parseFloat(selectedOffer.new_total_amount)}
                     currency={selectedOffer.total_currency}
                     onPaymentSuccess={async (paymentIntent) => {
                        setLoading(true);
