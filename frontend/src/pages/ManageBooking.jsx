@@ -84,15 +84,8 @@ const ManageBooking = () => {
   };
 
   const handleChangeFlight = async () => {
-     // Redirect to search with flight change context
-     // We pass the order_id so the search page can differentiate between new booking and modification
-     navigate('/search', { 
-        state: { 
-           change_order: booking.id,
-           origin: booking.slices?.[0]?.segments?.[0]?.origin?.iata_code,
-           destination: booking.slices?.[0]?.segments?.at(-1)?.destination?.iata_code
-        } 
-     });
+     // Redirect to search with flight change context via URL params
+     navigate(`/?change_order_id=${booking.id}&pnr=${booking.booking_reference}`);
   };
 
   const handleConfirmOrderChange = async (changeId) => {

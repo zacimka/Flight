@@ -1,9 +1,13 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { searchFlights } from '../services/api';
 import AirportAutocomplete from './AirportAutocomplete';
 
 const FlightSearchCard = () => {
+  const [searchParams] = useSearchParams();
+  const changeOrderId = searchParams.get('change_order_id');
+  const existingPnr = searchParams.get('pnr');
+
   const [tripType, setTripType] = useState('roundtrip');
   const [criteria, setCriteria] = useState({
     origin: '',
@@ -77,7 +81,8 @@ const FlightSearchCard = () => {
         return_date: criteria.returnDate,
         adults: criteria.passengers,
         children: criteria.children,
-        cabin_class: criteria.flightClass
+        cabin_class: criteria.flightClass,
+        change_order: changeOrderId // PASS THE CHANGE ORDER ID
       } 
     });
   };
@@ -85,6 +90,20 @@ const FlightSearchCard = () => {
   return (
     <section className="relative -mt-16 mb-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
+        {changeOrderId && (
+           <div className="mb-6 bg-blue-600 p-6 rounded-[2rem] shadow-xl animate-in slide-in-from-top-4 duration-500 overflow-hidden relative">
+              <div className="absolute top-0 right-0 p-8 opacity-10 text-8xl">🔄</div>
+              <div className="relative flex items-center gap-6">
+                 <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-3xl animate-spin-slow">🔄</div>
+                 <div>
+                    <h3 className="text-white font-black text-xl uppercase tracking-tight">Waxaad beddelaysaa duulimaadkaaga</h3>
+                    <p className="text-blue-100 font-bold opacity-80 uppercase tracking-widest text-[10px] mt-1">Existing PNR: {existingPnr || 'N/A'}</p>
+                 </div>
+                 <button onClick={() => navigate('/')} className="ml-auto bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Cancel Change</button>
+              </div>
+           </div>
+        )}
+
         <div className="bg-white rounded-[2rem] shadow-2xl border border-gray-100 overflow-hidden">
           {/* Tabs */}
           <div className="flex border-b border-gray-100 bg-gray-50/50">
