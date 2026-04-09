@@ -70,7 +70,9 @@ const AirportAutocomplete = ({ label, placeholder, value, onChange }) => {
     // Format the display string: "City (IATA) - Airport Name"
     const matchedIata = airport.iata_code || airport.IATA;
     const matchedCity = airport.city_name || airport.city;
-    const displayString = `${matchedCity} (${matchedIata})`;
+    const displayString = airport.type === 'city' 
+       ? `${matchedCity} (All Airports - ${matchedIata})`
+       : `${matchedCity} (${matchedIata})`;
     
     setQuery(displayString);
     onChange(displayString); // Passes value back to parent component
@@ -114,13 +116,21 @@ const AirportAutocomplete = ({ label, placeholder, value, onChange }) => {
             >
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="font-semibold text-gray-800 text-sm">
+                  <p className="font-black text-gray-900 text-sm">
                     {airport.city_name || airport.city} {airport.country ? `, ${airport.country}` : ''}
                   </p>
-                  <p className="text-xs text-gray-500">{airport.airport_name || airport.airport}</p>
+                  <p className="text-[10px] uppercase font-black text-gray-400 tracking-widest">
+                    {airport.type === 'city' ? (
+                       <span className="text-blue-600 font-black">🏙️ Multi-Airport City</span>
+                    ) : (
+                       airport.airport_name || airport.airport
+                    )}
+                  </p>
                 </div>
                 {(airport.iata_code || airport.IATA) && (
-                  <span className="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded">
+                  <span className={`text-[10px] font-black px-2 py-1 rounded-md shadow-sm ${
+                    airport.type === 'city' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
+                  }`}>
                     {airport.iata_code || airport.IATA}
                   </span>
                 )}

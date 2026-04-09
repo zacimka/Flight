@@ -20,9 +20,10 @@ const getAirports = async (req, res) => {
     }
     const suggestions = await duffel.suggestions.list(params);
     const mapped = suggestions.data.map(p => ({
-      airport_name: p.name,
+      airport_name: p.type === 'city' ? `All Airports in ${p.name}` : p.name,
       iata_code: p.iata_code,
-      city_name: p.city_name,
+      city_name: p.city_name || p.name,
+      type: p.type, // 'airport' or 'city'
       coordinates: { latitude: p.latitude, longitude: p.longitude }
     }));
     res.json({ data: mapped });
