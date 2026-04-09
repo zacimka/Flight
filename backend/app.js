@@ -7,7 +7,7 @@ const connectDB = require("./config/db");
 const errorHandler = require("./middlewares/errorHandler");
 const rateLimiter = require("./middlewares/rateLimiter");
 
-dotenv.config({ path: require("path").join(__dirname, ".env") });
+dotenv.config({ path: require("path").join(__dirname, ".env"), override: true });
 
 // Strict Environment Validations
 if (!process.env.MONGO_URI && !process.env.MONGODB_URI) {
@@ -20,7 +20,10 @@ if (!process.env.DUFFEL_API_KEY && !process.env.DUFFEL_ACCESS_TOKEN) {
 }
 if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY.includes('your_stripe')) {
   console.error("❌ CRITICAL ERROR: Stripe Secret Key is missing or invalid placeholder!");
+  console.error("Current Key Value Start:", (process.env.STRIPE_SECRET_KEY || 'MISSING').substring(0, 7) + "...");
   process.exit(1);
+} else {
+  console.log("✅ Stripe Secret Key loaded successfully (starts with:", process.env.STRIPE_SECRET_KEY.substring(0, 7) + "...)");
 }
 // Normalize env aliases for seamless deployment
 if (process.env.MONGODB_URI) process.env.MONGO_URI = process.env.MONGODB_URI;
