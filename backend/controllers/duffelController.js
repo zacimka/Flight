@@ -732,7 +732,7 @@ const confirmBooking = async (req, res) => {
       console.error('Failed to save booking to MongoDB:', saveErr);
     }
 
-    // 5. Send Confirmation Email asynchronously
+    // 5. Send Confirmation Email (Treated carefully before response)
     try {
       const emailData = formatOrderForEmail(order.data, totalPriceWithMarkup || duffelTotalToPay);
       const primaryEmail = passengers[0]?.email || paymentIntent.receipt_email;
@@ -741,10 +741,11 @@ const confirmBooking = async (req, res) => {
         console.log(`Confirmation email sent to ${primaryEmail}`);
       }
     } catch (emailErr) {
-      console.error('Failed to send confirmation email:', emailErr);
+      console.error('Email Service Error (Booking was successful):', emailErr.message);
     }
     
-    res.status(201).json({
+    // 6. Return success to Frontend
+    return res.status(201).json({
       success: true,
       data: order.data,
       message: 'Booking confirmed and ticket issued'
@@ -763,7 +764,7 @@ const confirmBooking = async (req, res) => {
        }).join(' | ');
     }
 
-    res.status(500).json({ 
+    return res.status(500).json({ 
       success: false,
       message: 'Booking Failed', 
       details: errorDetails,
