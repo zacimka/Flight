@@ -687,9 +687,9 @@ const confirmBooking = async (req, res) => {
       orderData.services = services;
     }
 
-    // 3. Issue ticket via arc_bsp_cash directly to Duffel
+    // 3. Issue ticket via balance directly to Duffel
     orderData.payments = [{
-        type: 'arc_bsp_cash',
+        type: 'balance',
         amount: duffelTotalToPay.toFixed(2).toString(),
         currency: offer.data.total_currency
     }];
