@@ -42,10 +42,9 @@ const ManageBooking = () => {
      setCancelling(true);
      try {
         const baseURL = resolveApiBaseURL();
-        const token = localStorage.getItem('token');
+        // Public endpoint - no token needed for retrieved bookings validation
         const res = await axios.post(`${baseURL}/duffel/cancellation-quote`, 
-           { order_id: booking.id },
-           { headers: { Authorization: `Bearer ${token}` } }
+           { order_id: booking.id }
         );
         setCancellationQuote(res.data.data);
         setShowCancelModal(true);
@@ -60,11 +59,7 @@ const ManageBooking = () => {
      setCancelling(true);
      try {
         const baseURL = resolveApiBaseURL();
-        const token = localStorage.getItem('token');
-        await axios.post(`${baseURL}/duffel/cancellations/${cancellationQuote.cancellation_id}/confirm`, 
-           {},
-           { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await axios.post(`${baseURL}/duffel/cancellations/${cancellationQuote.cancellation_id}/confirm`, {});
         toast.success('Order Cancelled Successfully');
         setBooking(null);
         setShowCancelModal(false);
@@ -78,10 +73,8 @@ const ManageBooking = () => {
   const requestInvoice = async () => {
      try {
         const baseURL = resolveApiBaseURL();
-        const token = localStorage.getItem('token');
         const res = await axios.post(`${baseURL}/duffel/request-invoice`, 
-           { order_id: booking.id },
-           { headers: { Authorization: `Bearer ${token}` } }
+           { order_id: booking.id }
         );
         toast.success(res.data.message || 'Invoice sent to your email.');
      } catch (err) {

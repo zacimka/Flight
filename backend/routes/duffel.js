@@ -26,13 +26,19 @@ const {
 
 const router = express.Router();
 
-// ── Public ────────────────────────────────────────────────────────────────
+// ── Public — Order Retrieval & Management ────────────────────────────────
 router.get('/client-key', generateClientKey);
 router.get('/airports', getAirports);
 router.post('/search-flights', searchFlights);
 router.post('/price-check', priceCheck);
 router.get('/offer/:id', getOffer);
 router.get('/orders/retrieve', retrieveOrderDetail);
+
+// Public Order Management (Accessed via PNR/Last Name validation results)
+router.post('/cancellation-quote', createCancellationQuote);
+router.post('/cancellations/:cancellation_id/confirm', confirmCancellation);
+router.post('/request-invoice', requestInvoice);
+router.post('/orders/change', createOrderChangeRequest); // Added per user request
 
 // ── Webhooks (no auth — Duffel sends these) ───────────────────────────────
 router.post('/webhooks', handleWebhook);
@@ -49,15 +55,9 @@ router.post('/orders/:order_id/services', protect, addOrderServices);
 router.post('/order-change-request', protect, createOrderChangeRequest);
 router.post('/order-changes/:change_id/confirm', protect, confirmOrderChange);
 
-// ── Protected — cancellation ──────────────────────────────────────────────
-router.post('/cancellation-quote', protect, createCancellationQuote);
-router.post('/cancellations/:cancellation_id/confirm', protect, confirmCancellation);
-
 // ── Protected — airline credits ───────────────────────────────────────────
 router.get('/airline-credits', protect, getAirlineCredits);
 router.get('/airline-credits/:id', protect, getAirlineCredit);
 router.post('/airline-credits', protect, createAirlineCredit);
-
-router.post('/request-invoice', protect, requestInvoice);
 
 module.exports = router;
