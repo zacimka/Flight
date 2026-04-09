@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
+import axios from 'axios';
+import { resolveApiBaseURL } from '../services/api';
 import { duffelSearchFlights, getDuffelOffer, createDuffelBooking, confirmDuffelBooking } from '../services/api';
 import { useNavigate, useLocation } from 'react-router-dom';
 import DuffelPaymentIntegration from '../components/DuffelPaymentIntegration';
@@ -111,26 +113,41 @@ const DuffelBookingFlow = ({ user }) => {
 
       if (searchParams.return_date) payload.return_date = searchParams.return_date;
 
-      // Private fares: corporate code per airline
-      if (searchParams.corporate_code && searchParams.airline_iata_for_corp) {
-        payload.private_fares = {
-          [searchParams.airline_iata_for_corp.toUpperCase()]: [
-            { corporate_code: searchParams.corporate_code }
-          ]
-        };
+      let res;
+      if (location.state?.change_order) {
+         // Specialized search for order changes
+         res = await axios.post(`${resolveApiBaseURL()}/duffel/order-change-request`, {
+            order_id: location.state.change_order,
+            slices: {
+               // For simplicity, we assume we're replacing the whole journey
+               // Advanced logic would identify specific slice IDs to remove
+               remove: location.state.slice_to_remove ? [location.state.slice_to_remove] : [],
+               add: [{
+                  origin: searchParams.origin.toUpperCase(),
+                  destination: searchParams.destination.toUpperCase(),
+                  departure_date: searchParams.departure_date,
+                  cabin_class: searchParams.cabin_class
+               }]
+            }
+         });
+         // Order change mapping
+         const changeOffers = res.data.data.order_change_offers || [];
+         setOffers(changeOffers.map(co => ({
+            ...co,
+            id: co.id,
+            total_amount: co.new_total_amount, // For display consistency
+            is_change: true,
+            change_fee: co.change_fee,
+            new_total_amount: co.new_total_amount,
+            penalty_amount: co.penalty_amount,
+            slices: co.slices
+         })));
+      } else {
+         res = await duffelSearchFlights(payload);
+         setOffers(res.data.data.offers || []);
       }
 
-      // Loyalty programme accounts
-      if (searchParams.loyalty_account_number && searchParams.loyalty_airline_iata) {
-        payload.loyalty_programme_accounts = [{
-          airline_iata_code: searchParams.loyalty_airline_iata.toUpperCase(),
-          account_number: searchParams.loyalty_account_number
-        }];
-      }
-
-      const res = await duffelSearchFlights(payload);
-      setOffers(res.data.data.offers || []);
-      if ((res.data.data.offers || []).length === 0)
+      if (((res.data.data.offers || res.data.data.order_change_offers) || []).length === 0)
         setError('Ma jiro duulimaad taariikhdan, fadlan isku day maalin kale.');
       else setStep('SELECT_OFFER');
     } catch (err) {
@@ -144,12 +161,20 @@ const DuffelBookingFlow = ({ user }) => {
     }
   };
 
-  const confirmOfferSelection = async (offer_id) => {
-    setProcessingOfferId(offer_id);
+  const confirmOfferSelection = async (offer) => {
+    // Note: 'offer' passed here is the object from the list
+    setProcessingOfferId(offer.id);
     setLoading(true);
     setError(null);
     try {
-      const res = await getDuffelOffer(offer_id);
+      if (offer.is_change) {
+         setSelectedOffer(offer);
+         // For changes, we skip ancillaries and go to a specialized confirmation
+         setStep('CONFIRM_CHANGE');
+         return;
+      }
+
+      const res = await getDuffelOffer(offer.id);
       const refreshed = res.data.data;
       setSelectedOffer(refreshed);
       setPassengerDetails(refreshed.passengers.map(p => ({
@@ -373,7 +398,8 @@ const DuffelBookingFlow = ({ user }) => {
                   <div className="text-right border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-8 w-full md:w-auto">
                     <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Total</p>
                     <p className="text-3xl font-black text-gray-900 mb-4">{offer.total_currency} {offer.total_amount}</p>
-                    <button onClick={() => confirmOfferSelection(offer.id)} disabled={loading} className={`w-full md:w-auto px-8 py-3 ${loading && processingOfferId === offer.id ? 'bg-indigo-800' : 'bg-indigo-600'} text-white font-bold rounded-xl hover:bg-indigo-700 transition shadow-lg relative z-10`}>
+                    <p className="text-3xl font-black text-gray-900 mb-4">{offer.total_currency} {offer.total_amount}</p>
+                    <button onClick={() => confirmOfferSelection(offer)} disabled={loading} className={`w-full md:w-auto px-8 py-3 ${loading && processingOfferId === offer.id ? 'bg-indigo-800' : 'bg-indigo-600'} text-white font-bold rounded-xl hover:bg-indigo-700 transition shadow-lg relative z-10`}>
                       {loading && processingOfferId === offer.id ? 'Processing…' : 'Select →'}
                     </button>
                     <p className="text-xs text-indigo-400 mt-3 font-bold">{expandedOfferId === offer.id ? '↑ Hide details' : '↓ View details'}</p>
@@ -520,6 +546,94 @@ const DuffelBookingFlow = ({ user }) => {
               >
                 Continue to Passengers →
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* ══ STEP: CONFIRM_CHANGE (Modification Review) ═════════════════════ */}
+        {step === 'CONFIRM_CHANGE' && selectedOffer && (
+          <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-2xl border-t-8 border-amber-600 space-y-10">
+            <div className="flex justify-between items-start pb-6 border-b border-gray-100">
+               <div>
+                  <h2 className="text-3xl font-black text-gray-900 tracking-tight">Review & Confirm Change</h2>
+                  <p className="text-sm text-gray-400 font-medium mt-1">Review your new itinerary and price difference before confirming.</p>
+               </div>
+               <div className="text-right">
+                  <p className="text-[10px] font-black uppercase text-amber-600 tracking-widest">New Order Total</p>
+                  <p className="text-4xl font-black text-gray-900">{selectedOffer.total_currency} {selectedOffer.total_amount}</p>
+                  {parseFloat(selectedOffer.change_fee) > 0 && (
+                     <p className="text-xs font-bold text-gray-400 mt-1">Includes {selectedOffer.total_currency} {selectedOffer.change_fee} change fee</p>
+                  )}
+               </div>
+            </div>
+
+            <div className="bg-amber-50 rounded-3xl p-8 border border-amber-100 space-y-4">
+               <h3 className="font-black text-amber-900 uppercase text-xs tracking-widest">Pricing Summary</h3>
+               <div className="flex justify-between text-lg">
+                  <span className="font-bold text-amber-700">Change Fee:</span>
+                  <span className="font-black text-gray-900">{selectedOffer.total_currency} {selectedOffer.change_fee}</span>
+               </div>
+               <div className="flex justify-between text-lg">
+                  <span className="font-bold text-amber-700">Airline Penalty:</span>
+                  <span className="font-black text-gray-900">{selectedOffer.total_currency} {selectedOffer.penalty_amount}</span>
+               </div>
+               <div className="h-px bg-amber-200 my-4" />
+               <div className="flex justify-between text-2xl font-black">
+                  <span className="text-amber-900">Final Total:</span>
+                  <span className="text-gray-900">{selectedOffer.total_currency} {selectedOffer.new_total_amount}</span>
+               </div>
+            </div>
+
+            {/* Flight Preview */}
+            <div className="space-y-6">
+                <h3 className="font-black text-gray-400 uppercase text-xs tracking-widest">New Flights</h3>
+                {selectedOffer.slices.map((slice, sIdx) => (
+                   <div key={sIdx} className="bg-gray-50 rounded-2xl p-6 border border-gray-100 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                         <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-xl shadow-sm">✈️</div>
+                         <div>
+                            <p className="font-black text-gray-900">{slice.segments[0].origin.iata_code} → {slice.segments.at(-1).destination.iata_code}</p>
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{new Date(slice.segments[0].departing_at).toLocaleDateString()}</p>
+                         </div>
+                      </div>
+                      <div className="text-right">
+                         <p className="font-black text-gray-900">{slice.duration.replace(/^PT/,'').replace(/H/,'h ').replace(/M/,'m')}</p>
+                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{slice.segments.length > 1 ? `${slice.segments.length} Segments` : 'Non-stop'}</p>
+                      </div>
+                   </div>
+                ))}
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 pt-6">
+               <button 
+                  onClick={() => setStep('SELECT_OFFER')}
+                  className="flex-1 py-5 bg-gray-100 text-gray-900 font-black rounded-2xl hover:bg-gray-200 transition-all uppercase text-xs tracking-widest"
+               >
+                  Back to Offers
+               </button>
+               <button 
+                  onClick={async () => {
+                     setLoading(true);
+                     try {
+                        const baseURL = resolveApiBaseURL();
+                        // Assume free or already paid in a real scenario you'd need a PaymentIntent
+                        const res = await axios.post(`${baseURL}/duffel/order-changes/${selectedOffer.id}/confirm`, {});
+                        if (res.data.success) {
+                           toast.success('Modification Confirmed!');
+                           setConfirmedBooking(res.data.data);
+                           setStep('CONFIRMED');
+                        }
+                     } catch (err) {
+                        setError(err.response?.data?.message || 'Failed to confirm change.');
+                     } finally {
+                        setLoading(false);
+                     }
+                  }}
+                  disabled={loading}
+                  className="flex-1 py-5 bg-indigo-600 text-white font-black rounded-2xl hover:bg-black transition-all shadow-2xl shadow-indigo-200 disabled:opacity-50 uppercase text-xs tracking-widest"
+               >
+                  {loading ? 'Confirming...' : 'Confirm Change Now'}
+               </button>
             </div>
           </div>
         )}
