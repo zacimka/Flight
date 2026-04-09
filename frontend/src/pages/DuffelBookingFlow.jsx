@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { toast } from 'react-hot-toast';
 import { duffelSearchFlights, getDuffelOffer, createDuffelBooking, confirmDuffelBooking } from '../services/api';
 import { useNavigate, useLocation } from 'react-router-dom';
 import DuffelPaymentIntegration from '../components/DuffelPaymentIntegration';
@@ -217,8 +218,11 @@ const DuffelBookingFlow = ({ user }) => {
       }
 
       navigate('/order-confirmation', { state: { booking: res.data.data } });
+      toast.success('Payment Successful! Check your email.');
     } catch (err) {
-      setError(err.response?.data?.debug || err.response?.data?.details || err.message || 'Booking failed.');
+      const msg = err.response?.data?.debug || err.response?.data?.details || err.message || 'Booking failed.';
+      setError(msg);
+      toast.error('Something went wrong, please contact support.');
     } finally {
       setLoading(false);
     }

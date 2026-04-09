@@ -160,4 +160,40 @@ const getBookingPDF = async (req, res, next) => {
   }
 };
 
-module.exports = { createBookingIntent, confirmPayment, getUserBookings, getBookingById, getBookingPDF };
+const manageBooking = async (req, res, next) => {
+  try {
+    const { pnr, lastName } = req.params;
+    
+    // Find booking by PNR (case insensitive)
+    const booking = await Booking.findOne({ 
+      pnr: { $regex: new RegExp(`^${pnr}$`, "i") } 
+    });
+
+    if (!booking) {
+      return res.status(404).json({ message: 'No booking found with this PNR.' });
+    }
+
+    // Check if any passenger's last name matches (case insensitive)
+    const nameMatches = booking.passengers.some(p => 
+      p.lastName.toLowerCase() === lastName.toLowerCase() || 
+      p.family_name?.toLowerCase() === lastName.toLowerCase()
+    );
+
+    if (!nameMatches) {
+      return res.status(403).json({ message: 'Last name does not match this booking.' });
+    }
+
+    res.json({ success: true, data: booking });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { 
+  createBookingIntent, 
+  confirmPayment, 
+  getUserBookings, 
+  getBookingById, 
+  getBookingPDF,
+  manageBooking
+};

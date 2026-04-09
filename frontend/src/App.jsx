@@ -11,23 +11,29 @@ import AdminContacts from "./pages/AdminContacts";
 import AgentPortal from "./pages/AgentPortal";
 import Login from "./pages/Login";
 import About from "./pages/About";
+import ManageBooking from "./pages/ManageBooking";
 import DuffelBookingFlow from "./pages/DuffelBookingFlow";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import WhatsAppButton from "./components/WhatsAppButton";
 import { useAuth } from "./hooks/useAuth";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   const { user, login, logout } = useAuth();
 
   return (
     <div className="bg-white dark:bg-gray-900 flex flex-col min-h-screen">
+      <Toaster position="top-center" reverseOrder={false} />
       <Navbar user={user} logout={logout} />
+      <WhatsAppButton />
 
       <div className="flex-grow">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/results" element={<Results />} />
+          <Route path="/manage-booking" element={<ManageBooking />} />
           <Route
             path="/booking"
             element={

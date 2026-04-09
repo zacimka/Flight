@@ -54,6 +54,7 @@ const Navbar = ({ user, logout }) => {
           <NavLink to="/" label="Flights" />
           <ExternalLink href="#hotels" label="Hotels" />
           <ExternalLink href="#packages" label="Packages" />
+          <NavLink to="/manage-booking" label="Manage Booking" />
           <NavLink to="/about" label="About" />
           <NavLink to="/contact" label="Contact" />
           
