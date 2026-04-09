@@ -1,5 +1,5 @@
 const Stripe = require('stripe');
-const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+const getStripe = () => Stripe(process.env.STRIPE_SECRET_KEY);
 
 const createPaymentIntent = async (amount, currency = 'usd', metadata = {}) => {
   if (process.env.STRIPE_SECRET_KEY === 'your_stripe_secret_key_here') {
@@ -10,6 +10,7 @@ const createPaymentIntent = async (amount, currency = 'usd', metadata = {}) => {
     };
   }
 
+  const stripe = getStripe();
   const paymentIntent = await stripe.paymentIntents.create({
     amount: Math.round(amount * 100),
     currency,
@@ -28,10 +29,12 @@ const retrievePaymentIntent = async (id) => {
       client_secret: `${id}_secret`,
     };
   }
+  const stripe = getStripe();
   return stripe.paymentIntents.retrieve(id);
 };
 
 const createRefund = async (paymentIntentId, amount) => {
+  const stripe = getStripe();
   const refund = await stripe.refunds.create({
     payment_intent: paymentIntentId,
     amount: Math.round(amount * 100)

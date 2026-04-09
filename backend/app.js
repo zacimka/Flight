@@ -18,6 +18,10 @@ if (!process.env.DUFFEL_API_KEY && !process.env.DUFFEL_ACCESS_TOKEN) {
   console.error("❌ CRITICAL ERROR: Duffel API Token is missing from environment variables!");
   process.exit(1);
 }
+if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY.includes('your_stripe')) {
+  console.error("❌ CRITICAL ERROR: Stripe Secret Key is missing or invalid placeholder!");
+  process.exit(1);
+}
 // Normalize env aliases for seamless deployment
 if (process.env.MONGODB_URI) process.env.MONGO_URI = process.env.MONGODB_URI;
 if (!process.env.DUFFEL_API_KEY) {

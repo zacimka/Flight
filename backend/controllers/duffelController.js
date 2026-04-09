@@ -1,5 +1,5 @@
 const duffel = require('../services/duffelService');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const getStripe = () => require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Booking = require('../models/Booking');
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -670,6 +670,7 @@ const createPaymentIntent = async (req, res) => {
     // 4. Create Stripe Payment Intent using Duffel Offer Currency
     const offerCurrency = (offer.data.total_currency || 'GBP').toLowerCase();
 
+    const stripe = getStripe();
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(totalAmount * 100), // convert to cents
       currency: offerCurrency,
@@ -729,6 +730,7 @@ const confirmBooking = async (req, res) => {
     const { paymentIntentId, offer_id, passengers, services, metadata, totalPriceWithMarkup } = req.body;
     
     // 1. Verify Payment Intent is successful
+    const stripe = getStripe();
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
     if (paymentIntent.status !== 'succeeded') {
        return res.status(400).json({ message: 'Payment not successful yet' });
