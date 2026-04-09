@@ -52,8 +52,8 @@ router.get('/orders/:order_id/services', protect, getOrderServices);
 router.post('/orders/:order_id/services', protect, addOrderServices);
 
 // ── Protected — order changes ─────────────────────────────────────────────
-router.post('/order-change-request', protect, createOrderChangeRequest);
-router.post('/order-changes/:change_id/confirm', protect, confirmOrderChange);
+router.post('/order-change-request', createOrderChangeRequest);
+router.post('/order-changes/:change_id/confirm', confirmOrderChange);
 
 // ── Protected — airline credits ───────────────────────────────────────────
 router.get('/airline-credits', protect, getAirlineCredits);

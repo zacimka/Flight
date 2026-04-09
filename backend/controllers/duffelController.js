@@ -393,14 +393,20 @@ const createOrderChangeRequest = async (req, res) => {
   try {
     const { order_id, slices } = req.body;
     // slices: { remove: [slice_id], add: [{ ...slice_data }] }
-    if (!order_id || !slices)
-      return res.status(400).json({ message: 'order_id and slices required' });
+    if (!order_id) return res.status(400).json({ message: 'order_id required' });
 
-    const changeRequest = await duffel.orderChangeRequests.create({ order_id, slices });
-    res.status(201).json({ data: changeRequest.data });
+    const changeRequest = await duffel.orderChangeRequests.create({ 
+       order_id, 
+       slices: slices || { remove: [], add: [] } 
+    });
+    res.status(201).json({ success: true, data: changeRequest.data });
   } catch (error) {
     console.error('Order Change Request Error:', error.message);
-    res.status(500).json({ message: 'Failed to create order change request', details: error.errors || error.message });
+    res.status(500).json({ 
+       success: false, 
+       message: 'Failed to create order change request', 
+       details: error.errors || error.message 
+    });
   }
 };
 
