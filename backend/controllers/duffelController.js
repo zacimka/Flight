@@ -447,7 +447,21 @@ const createCancellationQuote = async (req, res) => {
 
 const confirmCancellation = async (req, res) => {
   try {
-    const result = await duffel.orderCancellations.confirm(req.params.cancellation_id);
+    const { cancellation_id } = req.params;
+    const result = await duffel.orderCancellations.confirm(cancellation_id);
+    
+    // Update local database if booking exists
+    try {
+      const orderId = result.data.order_id;
+      await Booking.findOneAndUpdate(
+        { duffelOrderId: orderId },
+        { status: 'cancelled' }
+      );
+      console.log(`Local booking ${orderId} marked as cancelled.`);
+    } catch (dbErr) {
+      console.error('Failed to update local booking status:', dbErr.message);
+    }
+
     res.json({ success: true, message: 'Order cancelled successfully', data: result.data });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to confirm cancellation', details: error.errors || error.message });
@@ -825,6 +839,13 @@ const retrieveOrderDetail = async (req, res) => {
 
     // Get the full order details (list might be summary)
     const order = await duffel.orders.get(ordersList.data[0].id);
+
+    // 1b. Check if order is already cancelled
+    if (order.data.status === 'cancelled') {
+      return res.status(404).json({ 
+        message: 'This booking has been cancelled and is no longer accessible.' 
+      });
+    }
 
     // 2. Validate Last Name against passengers
     const nameMatches = order.data.passengers.some(p => 

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 import { resolveApiBaseURL } from '../services/api';
 
 const ManageBooking = () => {
+  const navigate = useNavigate();
   const [pnr, setPnr] = useState('');
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -65,9 +67,10 @@ const ManageBooking = () => {
      try {
         const baseURL = resolveApiBaseURL();
         await axios.post(`${baseURL}/duffel/cancellations/${cancellationQuote.cancellation_id}/confirm`, {});
-        toast.success('Dalabkaagii waa la tirtiray!');
+        toast.success('Nasiib wanaag! Dalabkaagii si guul leh ayaa loo tirtiray.');
         setBooking(null);
         setShowCancelModal(false);
+        setTimeout(() => navigate('/'), 2000);
      } catch (err) {
         toast.error('Xaqiijinta joojinta way fashilantay.');
      } finally {
