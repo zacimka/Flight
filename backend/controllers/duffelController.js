@@ -474,11 +474,22 @@ const createCancellationQuote = async (req, res) => {
   } catch (error) {
     console.error('Cancellation Quote Error:', JSON.stringify(error.errors || error.message, null, 2));
     
-    let userMessage = 'Cillad ayaa dhacday soo saarista lacagta kuu soo laabanaysa.';
-    if (error.errors && error.errors.some(e => e.title === 'order_not_cancellable')) {
-      userMessage = 'Duulimaadkan lama joojin karo (Non-refundable). Fadlan la xiriir kooxda caawinta.';
-    } else if (error.errors && error.errors.some(e => e.title === 'order_already_cancelled')) {
-      userMessage = 'Dalabkan horay ayaa loo joojiyay.';
+    let userMessage = 'Joojinta duulimaadkan hadda suurtagal maahan.';
+    
+    if (error.errors && Array.isArray(error.errors)) {
+       const isNonRefundable = error.errors.some(e => 
+          e.title === 'order_not_cancellable' || 
+          e.code === 'order_not_cancellable' ||
+          (e.message && e.message.toLowerCase().includes('not cancellable'))
+       );
+       
+       if (isNonRefundable) {
+          userMessage = 'Duulimaadkan maaha mid lacagtiisa dib loo celin karo (Non-refundable). Fadlan hubi shuruudaha tikidhkaaga.';
+       } else if (error.errors.some(e => e.title === 'order_already_cancelled')) {
+          userMessage = 'Dalabkan mar hore ayaa la joojiyay.';
+       } else if (error.errors.some(e => e.message && e.message.toLowerCase().includes('past'))) {
+          userMessage = 'Maadaama xilligii duulimaadku dhaafay ama uu dhow yahay, laguma joojin karo API-ga.';
+       }
     }
 
     res.status(500).json({ 
