@@ -114,10 +114,12 @@ const DuffelBookingFlow = ({ user }) => {
       if (searchParams.return_date) payload.return_date = searchParams.return_date;
 
       let res;
-      if (location.state?.change_order) {
+      const effectiveChangeId = location.state?.change_id || location.state?.change_order;
+      
+      if (effectiveChangeId) {
          // Specialized search for order changes
          res = await axios.post(`${resolveApiBaseURL()}/duffel/order-change-request`, {
-            order_id: location.state.change_order,
+            order_id: effectiveChangeId,
             slices: {
                // For simplicity, we assume we're replacing the whole journey
                // Advanced logic would identify specific slice IDs to remove
@@ -169,7 +171,17 @@ const DuffelBookingFlow = ({ user }) => {
     try {
       if (offer.is_change) {
          setSelectedOffer(offer);
-         // For changes, we skip ancillaries and go to a specialized confirmation
+         
+         // Trigger payment intent if price difference > 0
+         if (parseFloat(offer.new_total_amount) > 0) {
+            const piRes = await axios.post(`${resolveApiBaseURL()}/duffel/order-change-payment-intent`, {
+               amount: offer.new_total_amount,
+               currency: offer.total_currency,
+               change_id: offer.id
+            });
+            setPaymentSecret(piRes.data.clientSecret);
+         }
+         
          setStep('CONFIRM_CHANGE');
          return;
       }
@@ -553,88 +565,127 @@ const DuffelBookingFlow = ({ user }) => {
         {/* ══ STEP: CONFIRM_CHANGE (Modification Review) ═════════════════════ */}
         {step === 'CONFIRM_CHANGE' && selectedOffer && (
           <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-2xl border-t-8 border-amber-600 space-y-10">
-            <div className="flex justify-between items-start pb-6 border-b border-gray-100">
+            <div className="flex flex-col md:flex-row justify-between items-start pb-6 border-b border-gray-100 gap-6">
                <div>
                   <h2 className="text-3xl font-black text-gray-900 tracking-tight">Review & Confirm Change</h2>
-                  <p className="text-sm text-gray-400 font-medium mt-1">Review your new itinerary and price difference before confirming.</p>
+                  <p className="text-sm text-gray-400 font-medium mt-1">Side-by-side comparison of your original booking and new itinerary.</p>
                </div>
-               <div className="text-right">
-                  <p className="text-[10px] font-black uppercase text-amber-600 tracking-widest">New Order Total</p>
-                  <p className="text-4xl font-black text-gray-900">{selectedOffer.total_currency} {selectedOffer.total_amount}</p>
-                  {parseFloat(selectedOffer.change_fee) > 0 && (
-                     <p className="text-xs font-bold text-gray-400 mt-1">Includes {selectedOffer.total_currency} {selectedOffer.change_fee} change fee</p>
-                  )}
+               <div className="bg-amber-50 px-6 py-4 rounded-2xl text-right">
+                  <p className="text-[10px] font-black uppercase text-amber-600 tracking-widest">Amount to Pay Now</p>
+                  <p className="text-4xl font-black text-gray-900">{selectedOffer.total_currency} {selectedOffer.penalty_amount === '0.00' && selectedOffer.change_fee === '0.00' ? '0.00' : selectedOffer.new_total_amount}</p>
                </div>
             </div>
 
-            <div className="bg-amber-50 rounded-3xl p-8 border border-amber-100 space-y-4">
-               <h3 className="font-black text-amber-900 uppercase text-xs tracking-widest">Pricing Summary</h3>
-               <div className="flex justify-between text-lg">
-                  <span className="font-bold text-amber-700">Change Fee:</span>
-                  <span className="font-black text-gray-900">{selectedOffer.total_currency} {selectedOffer.change_fee}</span>
+            {/* Side-by-Side Comparison */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+               {/* Original - Placeholder (In real app, fetch from state/API) */}
+               <div className="space-y-4 opacity-60 grayscale scale-[0.98] origin-left">
+                  <h3 className="font-black text-gray-400 uppercase text-xs tracking-widest px-2">Original Itinerary</h3>
+                  <div className="bg-gray-50 rounded-3xl p-6 border border-gray-200">
+                     <p className="text-sm font-bold text-gray-500 mb-4 italic">This flight will be replaced</p>
+                     <div className="flex items-center gap-4">
+                        <div className="text-2xl">🛫</div>
+                        <div>
+                           <p className="font-black text-gray-900">Old Flight Path</p>
+                           <p className="text-[10px] font-bold text-gray-400">PREVIOUS BOOKING</p>
+                        </div>
+                     </div>
+                  </div>
                </div>
-               <div className="flex justify-between text-lg">
-                  <span className="font-bold text-amber-700">Airline Penalty:</span>
-                  <span className="font-black text-gray-900">{selectedOffer.total_currency} {selectedOffer.penalty_amount}</span>
-               </div>
-               <div className="h-px bg-amber-200 my-4" />
-               <div className="flex justify-between text-2xl font-black">
-                  <span className="text-amber-900">Final Total:</span>
-                  <span className="text-gray-900">{selectedOffer.total_currency} {selectedOffer.new_total_amount}</span>
+
+               {/* New */}
+               <div className="space-y-4">
+                  <h3 className="font-black text-indigo-600 uppercase text-xs tracking-widest px-2">New Itinerary</h3>
+                  {selectedOffer.slices.map((slice, sIdx) => (
+                     <div key={sIdx} className="bg-white rounded-3xl p-6 border-2 border-indigo-600 shadow-xl shadow-indigo-50 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 bg-indigo-600 text-white px-4 py-1 rounded-bl-xl text-[10px] font-black uppercase">Selected</div>
+                        <div className="flex items-center gap-4">
+                           <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-xl shadow-sm">✈️</div>
+                           <div>
+                              <p className="font-black text-gray-900">{slice.segments[0].origin.iata_code} → {slice.segments.at(-1).destination.iata_code}</p>
+                              <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">{new Date(slice.segments[0].departing_at).toLocaleDateString()}</p>
+                           </div>
+                        </div>
+                     </div>
+                  ))}
                </div>
             </div>
 
-            {/* Flight Preview */}
-            <div className="space-y-6">
-                <h3 className="font-black text-gray-400 uppercase text-xs tracking-widest">New Flights</h3>
-                {selectedOffer.slices.map((slice, sIdx) => (
-                   <div key={sIdx} className="bg-gray-50 rounded-2xl p-6 border border-gray-100 flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                         <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-xl shadow-sm">✈️</div>
-                         <div>
-                            <p className="font-black text-gray-900">{slice.segments[0].origin.iata_code} → {slice.segments.at(-1).destination.iata_code}</p>
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{new Date(slice.segments[0].departing_at).toLocaleDateString()}</p>
-                         </div>
-                      </div>
-                      <div className="text-right">
-                         <p className="font-black text-gray-900">{slice.duration.replace(/^PT/,'').replace(/H/,'h ').replace(/M/,'m')}</p>
-                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{slice.segments.length > 1 ? `${slice.segments.length} Segments` : 'Non-stop'}</p>
-                      </div>
-                   </div>
-                ))}
+            <div className="bg-gray-50 rounded-3xl p-8 border border-gray-100 grid grid-cols-1 md:grid-cols-3 gap-8">
+               <div className="text-center md:text-left">
+                  <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-1">Original Price</p>
+                  <p className="text-xl font-bold text-gray-900">Paid</p>
+               </div>
+               <div className="text-center md:text-left">
+                  <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-1">Change Fees & Penalties</p>
+                  <p className="text-xl font-bold text-amber-600">+{selectedOffer.total_currency} {(parseFloat(selectedOffer.change_fee) + parseFloat(selectedOffer.penalty_amount)).toFixed(2)}</p>
+               </div>
+               <div className="text-center md:text-right border-t md:border-t-0 md:border-l border-gray-200 pt-6 md:pt-0 md:pl-8">
+                  <p className="text-[10px] font-black uppercase text-indigo-600 tracking-widest mb-1">Total Difference</p>
+                  <p className="text-3xl font-black text-gray-900">{selectedOffer.total_currency} {selectedOffer.new_total_amount}</p>
+               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 pt-6">
-               <button 
-                  onClick={() => setStep('SELECT_OFFER')}
-                  className="flex-1 py-5 bg-gray-100 text-gray-900 font-black rounded-2xl hover:bg-gray-200 transition-all uppercase text-xs tracking-widest"
-               >
-                  Back to Offers
-               </button>
-               <button 
-                  onClick={async () => {
-                     setLoading(true);
-                     try {
-                        const baseURL = resolveApiBaseURL();
-                        // Assume free or already paid in a real scenario you'd need a PaymentIntent
-                        const res = await axios.post(`${baseURL}/duffel/order-changes/${selectedOffer.id}/confirm`, {});
-                        if (res.data.success) {
-                           toast.success('Modification Confirmed!');
-                           setConfirmedBooking(res.data.data);
-                           setStep('CONFIRMED');
+            {parseFloat(selectedOffer.new_total_amount) > 0 ? (
+               <div className="bg-indigo-50 rounded-3xl p-8 border border-indigo-100">
+                  <h3 className="font-black text-indigo-900 uppercase text-xs tracking-widest mb-6 flex items-center gap-2">
+                     <span className="w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-sm">💳</span>
+                     Payment Required
+                  </h3>
+                  <DuffelPaymentIntegration
+                    clientSecret={paymentSecret}
+                    totalPrice={parseFloat(selectedOffer.new_total_amount)}
+                    currency={selectedOffer.total_currency}
+                    onPaymentSuccess={async (paymentIntent) => {
+                       setLoading(true);
+                       try {
+                          const res = await axios.post(`${resolveApiBaseURL()}/duffel/order-changes/${selectedOffer.id}/confirm`, {
+                             payment: {
+                                amount: selectedOffer.new_total_amount,
+                                currency: selectedOffer.total_currency,
+                                type: 'stripe'
+                             }
+                          });
+                          if (res.data.success) {
+                             toast.success('Duulimaadkaaga waa la beddelay!');
+                             setConfirmedBooking(res.data.data);
+                             setStep('CONFIRMED');
+                          }
+                       } catch (err) {
+                          setError('Waan ka xunnahay, beddelka ma guuleysan. Fadlan xiriir la samee shirkadda.');
+                       } finally {
+                          setLoading(false);
+                       }
+                    }}
+                    order_type="change"
+                  />
+               </div>
+            ) : (
+               <div className="flex flex-col sm:flex-row gap-4 pt-6">
+                  <button onClick={() => setStep('SELECT_OFFER')} className="flex-1 py-5 bg-gray-100 text-gray-900 font-black rounded-2xl hover:bg-gray-200 transition-all uppercase text-xs tracking-widest">Back to Offers</button>
+                  <button 
+                     onClick={async () => {
+                        setLoading(true);
+                        try {
+                           const res = await axios.post(`${resolveApiBaseURL()}/duffel/order-changes/${selectedOffer.id}/confirm`, {});
+                           if (res.data.success) {
+                              toast.success('Duulimaadkaagii waa la beddelay!');
+                              setConfirmedBooking(res.data.data);
+                              setStep('CONFIRMED');
+                           }
+                        } catch (err) {
+                           setError(err.response?.data?.message || 'Failed to confirm change.');
+                        } finally {
+                           setLoading(false);
                         }
-                     } catch (err) {
-                        setError(err.response?.data?.message || 'Failed to confirm change.');
-                     } finally {
-                        setLoading(false);
-                     }
-                  }}
-                  disabled={loading}
-                  className="flex-1 py-5 bg-indigo-600 text-white font-black rounded-2xl hover:bg-black transition-all shadow-2xl shadow-indigo-200 disabled:opacity-50 uppercase text-xs tracking-widest"
-               >
-                  {loading ? 'Confirming...' : 'Confirm Change Now'}
-               </button>
-            </div>
+                     }}
+                     disabled={loading}
+                     className="flex-1 py-5 bg-indigo-600 text-white font-black rounded-2xl hover:bg-black transition-all shadow-2xl shadow-indigo-200 uppercase text-xs tracking-widest"
+                  >
+                     {loading ? 'Confirming...' : 'Confirm Change (Free) →'}
+                  </button>
+               </div>
+            )}
           </div>
         )}
 
