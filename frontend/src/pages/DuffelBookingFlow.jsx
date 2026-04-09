@@ -693,17 +693,17 @@ const DuffelBookingFlow = ({ user }) => {
                 <div className="bg-gray-50 rounded-[2.5rem] p-8 md:p-12 mb-12 text-left border border-gray-100 space-y-12">
                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-200 pb-4">Itinerary Overview</h3>
                    <div className="space-y-10 border-l-4 border-indigo-100 ml-4 pl-8 relative">
-                      {confirmedBooking.slices?.[0]?.segments.map((segment, idx) => (
+                      {confirmedBooking?.slices?.[0]?.segments?.map((segment, idx) => (
                         <div key={idx} className="relative">
                            <div className="absolute -left-[44px] top-0 w-5 h-5 bg-indigo-600 rounded-full border-4 border-white shadow-md shadow-indigo-200" />
                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                               <div>
-                                 <p className="text-3xl font-black text-gray-900">{segment.origin.iata_code} <span className="text-sm font-bold text-gray-400">({segment.origin.name})</span></p>
-                                 <p className="text-indigo-600 font-black mt-1">{new Date(segment.departing_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                                 <p className="text-3xl font-black text-gray-900">{segment?.origin?.iata_code} <span className="text-sm font-bold text-gray-400">({segment?.origin?.name})</span></p>
+                                 <p className="text-indigo-600 font-black mt-1">{segment?.departing_at ? new Date(segment.departing_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A'}</p>
                               </div>
                               <div className="md:text-right">
-                                 <p className="text-3xl font-black text-gray-900">{segment.destination.iata_code} <span className="text-sm font-bold text-gray-400">({segment.destination.name})</span></p>
-                                 <p className="text-indigo-600 font-black mt-1">{new Date(segment.arriving_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                                 <p className="text-3xl font-black text-gray-900">{segment?.destination?.iata_code} <span className="text-sm font-bold text-gray-400">({segment?.destination?.name})</span></p>
+                                 <p className="text-indigo-600 font-black mt-1">{segment?.arriving_at ? new Date(segment.arriving_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A'}</p>
                               </div>
                            </div>
                            
@@ -712,7 +712,7 @@ const DuffelBookingFlow = ({ user }) => {
                               <div className="mt-8 py-2 px-6 bg-white border border-indigo-50 rounded-2xl inline-flex items-center gap-3 shadow-sm">
                                  <span className="w-2 h-2 bg-amber-400 rounded-full" />
                                  <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                                    Connection in {confirmedBooking.slices[0].segments[idx+1].origin.iata_code}
+                                    Connection in {confirmedBooking?.slices[0].segments[idx+1]?.origin?.iata_code}
                                  </span>
                               </div>
                            )}
