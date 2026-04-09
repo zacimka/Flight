@@ -85,7 +85,7 @@ const ManageBooking = () => {
 
   const handleChangeFlight = async () => {
      // Redirect to search with flight change context via URL params
-     navigate(`/?change_order_id=${booking.id}&pnr=${booking.booking_reference}`);
+     navigate(`/?change_id=${booking.id}&pnr=${booking.booking_reference}`);
   };
 
   const handleConfirmOrderChange = async (changeId) => {

@@ -409,6 +409,35 @@ const createOrderChangeRequest = async (req, res) => {
     });
   }
 };
+const createOrderChangePaymentIntent = async (req, res) => {
+  try {
+    const { amount, currency, change_id } = req.body;
+    
+    if (!amount || !currency) {
+       return res.status(400).json({ message: 'Amount and currency required' });
+    }
+
+    const stripe = getStripe();
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(amount * 100),
+      currency: currency.toLowerCase(),
+      payment_method_types: ['card'],
+      metadata: {
+        change_id: change_id || "GUEST_CHANGE",
+        type: 'order_change'
+      }
+    });
+
+    res.json({
+      success: true,
+      clientSecret: paymentIntent.client_secret,
+      totalAmount: amount
+    });
+  } catch (error) {
+    console.error('Order Change Payment Intent Error:', error.message);
+    res.status(500).json({ success: false, message: 'Payment initialization failed' });
+  }
+};
 
 const confirmOrderChange = async (req, res) => {
   try {
@@ -955,6 +984,7 @@ module.exports = {
   getOrderServices,
   addOrderServices,
   createOrderChangeRequest,
+  createOrderChangePaymentIntent,
   confirmOrderChange,
   createCancellationQuote,
   confirmCancellation,

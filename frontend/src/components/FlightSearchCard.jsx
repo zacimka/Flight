@@ -5,7 +5,7 @@ import AirportAutocomplete from './AirportAutocomplete';
 
 const FlightSearchCard = () => {
   const [searchParams] = useSearchParams();
-  const changeOrderId = searchParams.get('change_order_id');
+  const changeOrderId = searchParams.get('change_id');
   const existingPnr = searchParams.get('pnr');
 
   const [tripType, setTripType] = useState('roundtrip');

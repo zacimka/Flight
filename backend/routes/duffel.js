@@ -10,6 +10,7 @@ const {
   getOrderServices,
   addOrderServices,
   createOrderChangeRequest,
+  createOrderChangePaymentIntent,
   confirmOrderChange,
   createCancellationQuote,
   confirmCancellation,
@@ -53,6 +54,7 @@ router.post('/orders/:order_id/services', protect, addOrderServices);
 
 // ── Protected — order changes ─────────────────────────────────────────────
 router.post('/order-change-request', createOrderChangeRequest);
+router.post('/order-change-payment-intent', createOrderChangePaymentIntent);
 router.post('/order-changes/:change_id/confirm', confirmOrderChange);
 
 // ── Protected — airline credits ───────────────────────────────────────────
