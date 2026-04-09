@@ -557,8 +557,10 @@ const createPaymentIntent = async (req, res) => {
         });
     }
 
-    // 3. Fixed ZamGo Markup Logic (£30 flat fee)
-    const markup = 30;
+    // 3. Compute ZamGo Tiered Markup Logic
+    let markup = 30;
+    if (base < 70) markup = 10;
+    else if (base < 100) markup = 15;
 
     // Wadarta guud: Taxes + Fare + Markup + Services
     const totalAmount = base + markup + servicesTotal;
