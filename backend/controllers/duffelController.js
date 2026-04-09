@@ -662,12 +662,15 @@ const confirmBooking = async (req, res) => {
           phone_number: p.phone_number
         };
         if (p.passport_number && p.passport_country && p.passport_expiry) {
-           passObj.identity_documents = [{
-             type: 'passport',
-             unique_identifier: p.passport_number,
-             issuing_country_code: p.passport_country,
-             expires_on: p.passport_expiry
-           }];
+           const country = (p.passport_country || '').trim().toUpperCase();
+           if (country.length === 2) {
+             passObj.identity_documents = [{
+               type: 'passport',
+               unique_identifier: p.passport_number,
+               issuing_country_code: country,
+               expires_on: p.passport_expiry
+             }];
+           }
          }
          return passObj;
       }),
