@@ -755,7 +755,12 @@ const confirmBooking = async (req, res) => {
     // Extract specific Duffel errors if available
     let errorDetails = error.message;
     if (error.errors && Array.isArray(error.errors) && error.errors.length > 0) {
-       errorDetails = error.errors.map(e => `${e.title}: ${e.message}`).join(' | ');
+       errorDetails = error.errors.map(e => {
+         if (e.title === 'insufficient_balance') {
+           return "Duffel Test Balance-kaaga ayaa ebar ah. Fadlan ku shubo 'Test Credits' adoo tagaya Duffel Dashboard -> Payments.";
+         }
+         return `${e.title}: ${e.message}`;
+       }).join(' | ');
     }
 
     res.status(500).json({ 
