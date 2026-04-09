@@ -11,7 +11,7 @@ function Footer() {
           <Link to="/">
              <div className="bg-white inline-block rounded-2xl p-2 mb-6 shadow-md">
                 <img 
-                   src="/images/logo travel  new 1-01.png" 
+                   src="/images/zamgo_logo.jpg" 
                    alt="ZamGo Travel Logo" 
                    className="h-14 sm:h-16 md:h-20 w-auto object-contain"
                 />

@@ -86,9 +86,10 @@ const sendConfirmationEmail = async (to, booking) => {
         <style>
           body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #1f2937; margin: 0; padding: 0; background-color: #f9fafb; }
           .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-          .header { background: #4f46e5; padding: 40px 20px; text-align: center; color: white; }
+          .header { background: #4f46e5; padding: 30px 20px; text-align: center; color: white; }
+          .header img { height: 60px; margin-bottom: 10px; }
           .header h1 { margin: 0; font-size: 24px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-          .header p { margin: 10px 0 0; opacity: 0.9; font-weight: 500; }
+          .header p { margin: 5px 0 0; opacity: 0.9; font-weight: 500; }
           .content { padding: 30px; }
           .booking-card { background: #f3f4f6; border-radius: 12px; padding: 20px; margin-bottom: 25px; border-left: 4px solid #4f46e5; }
           .label { font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -102,6 +103,7 @@ const sendConfirmationEmail = async (to, booking) => {
       <body>
         <div class="container">
           <div class="header">
+            <img src="https://www.zamgotravel.com/images/zamgo_logo.jpg" alt="ZamGo Travel Logo">
             <h1>ZamGo Travel</h1>
             <p>Thanks for choosing ZamGo Travel! Your flight is confirmed.</p>
           </div>

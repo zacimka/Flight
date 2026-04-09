@@ -40,7 +40,7 @@ const Navbar = ({ user, logout }) => {
         {/* Logo */}
         <Link to="/" className="flex items-center shrink-0">
            <img 
-              src="/images/logo travel  new 1-01.png" 
+              src="/images/zamgo_logo.jpg" 
               alt="ZamGo Travel" 
               className="h-10 md:h-12 lg:h-14 w-auto object-contain"
               onError={(e) => {
