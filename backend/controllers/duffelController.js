@@ -593,9 +593,31 @@ const createPaymentIntent = async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────
 // 13. STRIPE CONFIRM BOOKING
 // ─────────────────────────────────────────────────────────────────────────
+const { sendConfirmationEmail } = require('../services/emailService');
+
+// Helper to format Duffel order for the email template
+const formatOrderForEmail = (order, duffelTotalWithMarkup) => {
+  const slice = order.slices[0];
+  const segment = slice.segments[0];
+  
+  return {
+    pnr: order.booking_reference,
+    orderId: order.id,
+    airline: segment.operating_carrier.name,
+    flightNumber: segment.operating_carrier_flight_number,
+    airportFrom: segment.origin.iata_code,
+    airportTo: segment.destination.iata_code,
+    departureDate: new Date(segment.departing_at).toLocaleString(),
+    arrivalDate: new Date(segment.arriving_at).toLocaleString(),
+    passengers: order.passengers,
+    totalPrice: duffelTotalWithMarkup.toFixed(2),
+    currency: order.total_currency
+  };
+};
+
 const confirmBooking = async (req, res) => {
   try {
-    const { paymentIntentId, offer_id, passengers, services, metadata } = req.body;
+    const { paymentIntentId, offer_id, passengers, services, metadata, totalPriceWithMarkup } = req.body;
     
     // 1. Verify Payment Intent is successful
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
@@ -638,13 +660,13 @@ const confirmBooking = async (req, res) => {
              issuing_country_code: p.passport_country,
              expires_on: p.passport_expiry
            }];
-        }
-        return passObj;
+         }
+         return passObj;
       }),
       metadata: {
          ...metadata,
          stripe_payment_intent: paymentIntentId,
-         agency: "Zamgo Travel Ltd",
+         agency: "ZamGo Travel Ltd",
          payment_source: "stripe_card",
          profit_margin: "Stripe Payment Captured"
       }
@@ -654,7 +676,7 @@ const confirmBooking = async (req, res) => {
       orderData.services = services;
     }
 
-    // 3. Issue ticket via arc_bsp_cash directly to Duffel as instructed
+    // 3. Issue ticket via arc_bsp_cash directly to Duffel
     orderData.payments = [{
         type: 'arc_bsp_cash',
         amount: duffelTotalToPay.toFixed(2).toString(),
@@ -662,11 +684,25 @@ const confirmBooking = async (req, res) => {
     }];
 
     const order = await duffel.orders.create(orderData);
+
+    // 4. Send Confirmation Email asynchronously
+    try {
+      const emailData = formatOrderForEmail(order.data, totalPriceWithMarkup || duffelTotalToPay);
+      // Send to the primary passenger's email
+      const primaryEmail = passengers[0]?.email || paymentIntent.receipt_email;
+      if (primaryEmail) {
+        await sendConfirmationEmail(primaryEmail, emailData);
+        console.log(`Confirmation email sent to ${primaryEmail}`);
+      }
+    } catch (emailErr) {
+      console.error('Failed to send confirmation email:', emailErr);
+      // Don't fail the whole request if only email fails
+    }
     
     res.status(201).json({
       success: true,
       data: order.data,
-      message: 'Booking confirmed via Stripe and arc_bsp_cash'
+      message: 'Booking confirmed and ticket issued'
     });
   } catch (error) {
     console.error('Stripe Confirm Booking Error:', error);

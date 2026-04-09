@@ -36,7 +36,7 @@ const CustomCheckoutForm = ({ user, offerId, totalAmount, onPaymentReady, loadin
   const [cardholderName, setCardholderName] = useState(user?.name || '');
   const [error, setError] = useState(errorBooking || null);
   const [loading, setLoading] = useState(false);
-  const [clientSecret, setClientSecret] = useState('');
+  const [finalPriceWithMarkup, setFinalPriceWithMarkup] = useState(0);
 
   // Initializing Payment Intent (Backend Calculates Markup + Returns Client Secret)
   useEffect(() => {
@@ -46,6 +46,7 @@ const CustomCheckoutForm = ({ user, offerId, totalAmount, onPaymentReady, loadin
         const res = await createDuffelPaymentIntent({ offer_id: offerId }, user.token);
         if (mounted) {
           setClientSecret(res.data.clientSecret);
+          setFinalPriceWithMarkup(res.data.totalAmount);
         }
       } catch (err) {
         if (mounted) setError('Failed to initialize secure payment. Refresh to try again.');
@@ -85,7 +86,8 @@ const CustomCheckoutForm = ({ user, offerId, totalAmount, onPaymentReady, loadin
       // Pass control to DuffelBookingFlow to finalize the order via backend Duffel endpoint
       onPaymentReady({
          type: 'stripe',
-         paymentIntentId: paymentIntent.id
+         paymentIntentId: paymentIntent.id,
+         totalPricePaid: finalPriceWithMarkup
       });
     }
   };

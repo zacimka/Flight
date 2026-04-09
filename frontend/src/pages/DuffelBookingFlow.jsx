@@ -207,7 +207,8 @@ const DuffelBookingFlow = ({ user }) => {
              offer_id: payload.offer_id,
              passengers: payload.passengers,
              services: payload.services,
-             metadata: payload.metadata
+             metadata: payload.metadata,
+             totalPriceWithMarkup: paymentData.totalPricePaid
           };
           res = await confirmDuffelBooking(stripePayload, user.token);
       } else {
