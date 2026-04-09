@@ -75,7 +75,7 @@ const AirportAutocomplete = ({ label, placeholder, value, onChange }) => {
        : `${matchedCity} (${matchedIata})`;
     
     setQuery(displayString);
-    onChange(matchedIata); // MUHIIM: U dir kaliya IATA code-ka (e.g., LON) si search-ku u shaqeeyo
+    onChange(airport.iata_code || airport.IATA); 
     setIsOpen(false);
   };
 
