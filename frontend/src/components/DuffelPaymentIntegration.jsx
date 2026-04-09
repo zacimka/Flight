@@ -36,6 +36,7 @@ const CustomCheckoutForm = ({ user, offerId, totalAmount, onPaymentReady, loadin
   const [cardholderName, setCardholderName] = useState(user?.name || '');
   const [error, setError] = useState(errorBooking || null);
   const [loading, setLoading] = useState(false);
+  const [clientSecret, setClientSecret] = useState('');
   const [finalPriceWithMarkup, setFinalPriceWithMarkup] = useState(0);
 
   // Initializing Payment Intent (Backend Calculates Markup + Returns Client Secret)
@@ -44,12 +45,17 @@ const CustomCheckoutForm = ({ user, offerId, totalAmount, onPaymentReady, loadin
     const fetchIntent = async () => {
       try {
         const res = await createDuffelPaymentIntent({ offer_id: offerId }, user.token);
-        if (mounted) {
+        if (mounted && res.data.success) {
           setClientSecret(res.data.clientSecret);
           setFinalPriceWithMarkup(res.data.totalAmount);
+        } else if (mounted) {
+          setError('Payment session failed to initialize. Please contact support.');
         }
       } catch (err) {
-        if (mounted) setError('Failed to initialize secure payment. Refresh to try again.');
+        if (mounted) {
+          const errMsg = err.response?.data?.message || 'Failed to initialize secure payment. Refresh to try again.';
+          setError(errMsg);
+        }
       }
     };
     if (offerId && user?.token) fetchIntent();

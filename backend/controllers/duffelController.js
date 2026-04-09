@@ -587,7 +587,11 @@ const createPaymentIntent = async (req, res) => {
     });
   } catch (error) {
     console.error('Stripe Payment Intent Error:', error);
-    res.status(500).json({ message: 'Stripe Gateway Error', details: error.message });
+    res.status(500).json({ 
+      success: false, 
+      message: 'Stripe Gateway Error', 
+      error: error.message || 'Payment engine failed to start' 
+    });
   }
 };
 
