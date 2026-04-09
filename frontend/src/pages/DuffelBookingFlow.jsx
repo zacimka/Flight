@@ -235,7 +235,6 @@ const DuffelBookingFlow = ({ user }) => {
   return (
     <ErrorBoundary>
       <main className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50/30 py-12 px-4 sm:px-6 lg:px-8">
-        {/* ... existing content ... */}
         <div ref={resultsRef} className="max-w-5xl mx-auto space-y-8">
 
         <div className="text-center space-y-2">

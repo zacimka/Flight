@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 /** Backend mounts all routes under `/api` (see backend/app.js). Accept env as origin-only or full API root. */
-function resolveApiBaseURL() {
+export function resolveApiBaseURL() {
   // If an explicit env variable is given (set in Render Dashboard), use it
   const env = import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/$/, '');
   if (env && env !== 'undefined' && env !== 'null') {
