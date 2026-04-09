@@ -220,9 +220,16 @@ const DuffelBookingFlow = ({ user }) => {
       navigate('/order-confirmation', { state: { booking: res.data.data } });
       toast.success('Payment Successful! Check your email.');
     } catch (err) {
-      const msg = err.response?.data?.debug || err.response?.data?.details || err.message || 'Booking failed.';
-      setError(msg);
-      toast.error('Something went wrong, please contact support.');
+      console.error('Final Booking Error:', err);
+      const backEndErrors = err.response?.data?.debug;
+      let errorMsg = err.response?.data?.details || err.message || 'Booking failed.';
+      
+      if (Array.isArray(backEndErrors) && backEndErrors.length > 0) {
+        errorMsg = backEndErrors.map(e => `${e.title}: ${e.message}`).join(' | ');
+      }
+
+      setError(errorMsg);
+      toast.error('Booking failed. Please check the error message below.');
     } finally {
       setLoading(false);
     }

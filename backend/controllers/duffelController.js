@@ -691,35 +691,39 @@ const confirmBooking = async (req, res) => {
         currency: offer.data.total_currency
     }];
 
+    console.log('Sending Order Data to Duffel:', JSON.stringify(orderData, null, 2));
+
     const order = await duffel.orders.create(orderData);
 
     // 4. Save to MongoDB (Enable local 'Manage Booking')
     try {
-      const slice = order.data.slices[0];
-      const segment = slice.segments[0];
-      
-      await Booking.create({
-        userId: req.user?._id || metadata.customer_id, // If authenticated or from metadata
-        pnr: order.data.booking_reference,
-        paymentIntentId: paymentIntentId,
-        status: 'paid',
-        airline: segment.operating_carrier.name,
-        flightNumber: segment.operating_carrier_flight_number,
-        airportFrom: segment.origin.iata_code,
-        airportTo: segment.destination.iata_code,
-        departureDate: segment.departing_at,
-        arrivalDate: segment.arriving_at,
-        finalPrice: totalPriceWithMarkup || duffelTotalToPay,
-        passengers: passengers.map(p => ({
-            firstName: p.given_name,
-            lastName: p.family_name,
-            gender: p.gender,
-            born_on: p.born_on,
-            type: p.type || 'adult'
-        })),
-        flightData: order.data // Store full payload for safety
-      });
-      console.log(`Booking ${order.data.booking_reference} saved to MongoDB`);
+      if (order.data && order.data.slices && order.data.slices.length > 0) {
+        const slice = order.data.slices[0];
+        const segment = slice.segments[0];
+        
+        await Booking.create({
+          userId: req.user?._id || metadata?.customer_id, 
+          pnr: order.data.booking_reference,
+          paymentIntentId: paymentIntentId,
+          status: 'paid',
+          airline: segment.operating_carrier.name,
+          flightNumber: segment.operating_carrier_flight_number,
+          airportFrom: segment.origin.iata_code,
+          airportTo: segment.destination.iata_code,
+          departureDate: segment.departing_at,
+          arrivalDate: segment.arriving_at,
+          finalPrice: totalPriceWithMarkup || duffelTotalToPay,
+          passengers: passengers.map(p => ({
+              firstName: p.given_name,
+              lastName: p.family_name,
+              gender: p.gender,
+              born_on: p.born_on,
+              type: p.type || 'adult'
+          })),
+          flightData: order.data 
+        });
+        console.log(`Booking ${order.data.booking_reference} saved to MongoDB`);
+      }
     } catch (saveErr) {
       console.error('Failed to save booking to MongoDB:', saveErr);
     }
@@ -727,7 +731,6 @@ const confirmBooking = async (req, res) => {
     // 5. Send Confirmation Email asynchronously
     try {
       const emailData = formatOrderForEmail(order.data, totalPriceWithMarkup || duffelTotalToPay);
-      // Send to the primary passenger's email
       const primaryEmail = passengers[0]?.email || paymentIntent.receipt_email;
       if (primaryEmail) {
         await sendConfirmationEmail(primaryEmail, emailData);
@@ -735,7 +738,6 @@ const confirmBooking = async (req, res) => {
       }
     } catch (emailErr) {
       console.error('Failed to send confirmation email:', emailErr);
-      // Don't fail the whole request if only email fails
     }
     
     res.status(201).json({
@@ -744,8 +746,13 @@ const confirmBooking = async (req, res) => {
       message: 'Booking confirmed and ticket issued'
     });
   } catch (error) {
-    console.error('Stripe Confirm Booking Error:', error);
-    res.status(500).json({ message: 'Booking Failed', details: error.message });
+    console.error('Duffel Order Creation Error:', JSON.stringify(error.errors || error.message, null, 2));
+    res.status(500).json({ 
+      success: false,
+      message: 'Booking Failed', 
+      details: error.message,
+      debug: error.errors 
+    });
   }
 };
 
