@@ -748,6 +748,7 @@ const confirmBooking = async (req, res) => {
     return res.status(201).json({
       success: true,
       data: order.data,
+      order: order.data,
       message: 'Booking confirmed and ticket issued'
     });
   } catch (error) {
