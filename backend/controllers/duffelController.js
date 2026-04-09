@@ -566,16 +566,19 @@ const createPaymentIntent = async (req, res) => {
     // Wadarta guud: Taxes + Fare + Markup + Services
     const totalAmount = base + markup + servicesTotal;
     
-    // 4. Create Stripe Payment Intent explicitly using 'gbp'
+    // 4. Create Stripe Payment Intent using Duffel Offer Currency
+    const offerCurrency = (offer.data.total_currency || 'GBP').toLowerCase();
+
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(totalAmount * 100), // convert to cents / pence
-      currency: 'gbp',
+      amount: Math.round(totalAmount * 100), // convert to cents
+      currency: offerCurrency,
       payment_method_types: ['card'],
       metadata: {
         offer_id: offer_id,
         markup: markup.toString(),
         base_fare: base.toString(),
-        services_total: servicesTotal.toString()
+        services_total: servicesTotal.toString(),
+        currency: offerCurrency.toUpperCase()
       }
     });
 
@@ -583,10 +586,10 @@ const createPaymentIntent = async (req, res) => {
       success: true,
       clientSecret: paymentIntent.client_secret,
       totalAmount: totalAmount.toFixed(2),
-      currency: 'GBP'
+      currency: offerCurrency.toUpperCase()
     });
   } catch (error) {
-    console.error('Stripe Payment Intent Error:', error);
+    console.error("Stripe Error Details:", error.message);
     res.status(500).json({ 
       success: false, 
       message: 'Stripe Gateway Error', 
