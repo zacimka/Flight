@@ -424,6 +424,7 @@ const createCancellationQuote = async (req, res) => {
     if (!order_id) return res.status(400).json({ message: 'order_id required' });
     const quote = await duffel.orderCancellations.create({ order_id });
     res.status(201).json({
+      success: true,
       data: {
         cancellation_id: quote.data.id,
         refund_amount: quote.data.refund_amount,
@@ -434,16 +435,41 @@ const createCancellationQuote = async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to create cancellation quote', details: error.errors || error.message });
+    res.status(500).json({ success: false, message: 'Failed to create cancellation quote', details: error.errors || error.message });
   }
 };
 
 const confirmCancellation = async (req, res) => {
   try {
     const result = await duffel.orderCancellations.confirm(req.params.cancellation_id);
-    res.json({ message: 'Order cancelled successfully', data: result.data });
+    res.json({ success: true, message: 'Order cancelled successfully', data: result.data });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to confirm cancellation', details: error.errors || error.message });
+    res.status(500).json({ success: false, message: 'Failed to confirm cancellation', details: error.errors || error.message });
+  }
+};
+
+const requestInvoice = async (req, res) => {
+  try {
+    const { order_id } = req.body;
+    if (!order_id) return res.status(400).json({ message: 'Order ID is required' });
+
+    const order = await duffel.orders.get(order_id);
+    const email = order.data.passengers[0]?.email;
+
+    if (!email) {
+       return res.status(400).json({ message: 'No email found for this order. Please contact support.' });
+    }
+
+    // Logic to send invoice (reusing confirmation email service for now as it contains order details)
+    const { sendConfirmationEmail } = require('../services/emailService');
+    const { formatOrderForEmail } = require('../utils/emailFormatter');
+
+    const emailData = formatOrderForEmail(order.data, order.data.total_amount);
+    await sendConfirmationEmail(email, { ...emailData, subject: `Invoice for ${order.data.booking_reference} - ZamGo Travel` });
+
+    res.json({ success: true, message: `Invoice has been sent to ${email}` });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to send invoice', details: error.message });
   }
 };
 
@@ -859,5 +885,6 @@ module.exports = {
   generateClientKey,
   createPaymentIntent,
   confirmBooking,
-  retrieveOrderDetail
+  retrieveOrderDetail,
+  requestInvoice
 };

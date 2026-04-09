@@ -8,6 +8,9 @@ const ManageBooking = () => {
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
   const [booking, setBooking] = useState(null);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancellationQuote, setCancellationQuote] = useState(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -33,6 +36,57 @@ const ManageBooking = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCancelRequest = async () => {
+     setCancelling(true);
+     try {
+        const baseURL = resolveApiBaseURL();
+        const token = localStorage.getItem('token');
+        const res = await axios.post(`${baseURL}/duffel/cancellation-quote`, 
+           { order_id: booking.id },
+           { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setCancellationQuote(res.data.data);
+        setShowCancelModal(true);
+     } catch (err) {
+        toast.error(err.response?.data?.message || 'Cancellation not available for this flight.');
+     } finally {
+        setCancelling(false);
+     }
+  };
+
+  const confirmCancellation = async () => {
+     setCancelling(true);
+     try {
+        const baseURL = resolveApiBaseURL();
+        const token = localStorage.getItem('token');
+        await axios.post(`${baseURL}/duffel/cancellations/${cancellationQuote.cancellation_id}/confirm`, 
+           {},
+           { headers: { Authorization: `Bearer ${token}` } }
+        );
+        toast.success('Order Cancelled Successfully');
+        setBooking(null);
+        setShowCancelModal(false);
+     } catch (err) {
+        toast.error('Failed to confirm cancellation.');
+     } finally {
+        setCancelling(false);
+     }
+  };
+
+  const requestInvoice = async () => {
+     try {
+        const baseURL = resolveApiBaseURL();
+        const token = localStorage.getItem('token');
+        const res = await axios.post(`${baseURL}/duffel/request-invoice`, 
+           { order_id: booking.id },
+           { headers: { Authorization: `Bearer ${token}` } }
+        );
+        toast.success(res.data.message || 'Invoice sent to your email.');
+     } catch (err) {
+        toast.error('Failed to request invoice.');
+     }
   };
 
   const formatDateTime = (dateStr) => {
@@ -233,9 +287,79 @@ const ManageBooking = () => {
               <div className="text-center p-8 bg-indigo-50/50 rounded-[2.5rem] border border-indigo-100">
                  <p className="text-indigo-900 text-xs font-black uppercase tracking-widest mb-6">Need Support Ref: {booking?.id}</p>
                  <div className="flex flex-wrap justify-center gap-4">
-                    <button className="px-6 py-3 bg-white text-gray-900 font-bold rounded-xl shadow-sm hover:shadow-md transition">Change Flights</button>
-                    <button className="px-6 py-3 bg-white text-gray-900 font-bold rounded-xl shadow-sm hover:shadow-md transition">Cancel Order</button>
-                    <button className="px-6 py-3 bg-white text-gray-900 font-bold rounded-xl shadow-sm hover:shadow-md transition">Request Invoice</button>
+                    <button 
+                      onClick={() => window.location.href = `/search?change_order=${booking.id}`}
+                      className="px-6 py-3 bg-white text-gray-900 font-bold rounded-xl shadow-sm hover:shadow-md transition active:scale-95"
+                    >
+                      Change Flights
+                    </button>
+                    <button 
+                      onClick={handleCancelRequest}
+                      disabled={cancelling}
+                      className="px-6 py-3 bg-white text-red-600 font-bold rounded-xl shadow-sm hover:shadow-md transition active:scale-95 disabled:opacity-50"
+                    >
+                      {cancelling ? 'Checking...' : 'Cancel Order'}
+                    </button>
+                    <button 
+                      onClick={requestInvoice}
+                      className="px-6 py-3 bg-white text-gray-900 font-bold rounded-xl shadow-sm hover:shadow-md transition active:scale-95"
+                    >
+                      Request Invoice
+                    </button>
+                 </div>
+                 
+                 <div className="mt-8">
+                    <a 
+                      href={`https://wa.me/25261xxxxxxx?text=Support%20Request%20for%20Order%20${booking.booking_reference}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-indigo-600 font-black uppercase text-[10px] tracking-widest hover:text-indigo-800 transition"
+                    >
+                       <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                       Chat with Live Support
+                    </a>
+                 </div>
+              </div>
+           </div>
+        )}
+
+        {/* Cancellation Modal */}
+        {showCancelModal && cancellationQuote && (
+           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] flex items-center justify-center p-4">
+              <div className="bg-white rounded-[2.5rem] max-w-lg w-full p-10 shadow-2xl animate-in zoom-in-95 duration-300">
+                 <h2 className="text-3xl font-black text-gray-900 mb-2">Cancel Order?</h2>
+                 <p className="text-gray-500 font-medium mb-8">Please review the refund details before confirming your cancellation.</p>
+                 
+                 <div className="bg-gray-50 rounded-3xl p-6 space-y-4 mb-8">
+                    <div className="flex justify-between items-center text-sm font-bold">
+                       <span className="text-gray-400 uppercase tracking-widest text-[10px]">Refund Amount</span>
+                       <span className="text-green-600 text-lg">{cancellationQuote.refund_currency} {cancellationQuote.refund_amount}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm font-bold border-t border-gray-100 pt-4">
+                       <span className="text-gray-400 uppercase tracking-widest text-[10px]">Refund To</span>
+                       <span className="text-gray-700 uppercase">{cancellationQuote.refund_to}</span>
+                    </div>
+                    {cancellationQuote.airline_credits?.length > 0 && (
+                       <div className="p-3 bg-amber-50 text-amber-700 rounded-xl text-xs font-bold ring-1 ring-amber-100">
+                          Airline Credit will be issued for this cancellation.
+                       </div>
+                    )}
+                 </div>
+
+                 <div className="flex gap-4">
+                    <button 
+                      onClick={() => setShowCancelModal(false)}
+                      className="flex-1 py-4 bg-gray-100 text-gray-900 font-black rounded-2xl hover:bg-gray-200 transition active:scale-95"
+                    >
+                       Wait, Keep it
+                    </button>
+                    <button 
+                      onClick={confirmCancellation}
+                      disabled={cancelling}
+                      className="flex-1 py-4 bg-red-600 text-white font-black rounded-2xl hover:bg-red-700 transition shadow-xl shadow-red-100 active:scale-95 disabled:opacity-50"
+                    >
+                       {cancelling ? 'Processing...' : 'Confirm Cancel'}
+                    </button>
                  </div>
               </div>
            </div>

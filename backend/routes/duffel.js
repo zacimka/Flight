@@ -20,7 +20,8 @@ const {
   generateClientKey,
   createPaymentIntent,
   confirmBooking,
-  retrieveOrderDetail
+  retrieveOrderDetail,
+  requestInvoice
 } = require('../controllers/duffelController');
 
 const router = express.Router();
@@ -56,5 +57,7 @@ router.post('/cancellations/:cancellation_id/confirm', protect, confirmCancellat
 router.get('/airline-credits', protect, getAirlineCredits);
 router.get('/airline-credits/:id', protect, getAirlineCredit);
 router.post('/airline-credits', protect, createAirlineCredit);
+
+router.post('/request-invoice', protect, requestInvoice);
 
 module.exports = router;
