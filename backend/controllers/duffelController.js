@@ -774,6 +774,71 @@ const confirmBooking = async (req, res) => {
   }
 };
 
+const retrieveOrderDetail = async (req, res) => {
+  try {
+    const { pnr, lastName } = req.query; // Expecting ?pnr=ABC&lastName=Doe
+    
+    if (!pnr || !lastName) {
+      return res.status(400).json({ message: 'PNR and Last Name are required.' });
+    }
+
+    console.log(`Searching Duffel Order by PNR: ${pnr}`);
+    
+    // 1. List orders filtered by booking reference
+    const ordersList = await duffel.orders.list({ booking_reference: pnr });
+    
+    if (!ordersList.data || ordersList.data.length === 0) {
+      return res.status(404).json({ message: 'No booking found with this PNR in Duffel.' });
+    }
+
+    // Get the full order details (list might be summary)
+    const order = await duffel.orders.get(ordersList.data[0].id);
+
+    // 2. Validate Last Name against passengers
+    const nameMatches = order.data.passengers.some(p => 
+      p.family_name.toLowerCase() === lastName.toLowerCase()
+    );
+
+    if (!nameMatches) {
+      return res.status(403).json({ message: 'Last Name does not match any passenger on this booking.' });
+    }
+
+    // 3. Enrich with Transit/Layover Calculations
+    const slices = order.data.slices.map(slice => {
+        const segments = slice.segments.map((segment, idx) => {
+            const enriched = { ...segment };
+            
+            // Calculate Layover if not the last segment
+            if (idx < slice.segments.length - 1) {
+                const arrival = new Date(segment.arriving_at);
+                const nextDeparture = new Date(slice.segments[idx + 1].departing_at);
+                const diffMs = nextDeparture - arrival;
+                const hours = Math.floor(diffMs / 3600000);
+                const minutes = Math.round((diffMs % 3600000) / 60000);
+                enriched.layover = `${hours}h ${minutes}m`;
+                enriched.layover_airport = slice.segments[idx + 1].origin;
+            }
+            return enriched;
+        });
+        return { ...slice, segments };
+    });
+
+    res.json({
+      success: true,
+      data: {
+         ...order.data,
+         slices // Overwrite with enriched slices
+      }
+    });
+  } catch (error) {
+    console.error('Duffel Order Retrieval Error:', error);
+    res.status(500).json({ 
+      message: 'Failed to retrieve order from Duffel', 
+      details: error.errors || error.message 
+    });
+  }
+};
+
 module.exports = {
   getAirports,
   searchFlights,
@@ -793,5 +858,6 @@ module.exports = {
   createAirlineCredit,
   generateClientKey,
   createPaymentIntent,
-  confirmBooking
+  confirmBooking,
+  retrieveOrderDetail
 };

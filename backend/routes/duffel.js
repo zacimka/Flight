@@ -19,7 +19,8 @@ const {
   createAirlineCredit,
   generateClientKey,
   createPaymentIntent,
-  confirmBooking
+  confirmBooking,
+  retrieveOrderDetail
 } = require('../controllers/duffelController');
 
 const router = express.Router();
@@ -30,6 +31,7 @@ router.get('/airports', getAirports);
 router.post('/search-flights', searchFlights);
 router.post('/price-check', priceCheck);
 router.get('/offer/:id', getOffer);
+router.get('/orders/retrieve', retrieveOrderDetail);
 
 // ── Webhooks (no auth — Duffel sends these) ───────────────────────────────
 router.post('/webhooks', handleWebhook);

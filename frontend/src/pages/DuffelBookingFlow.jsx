@@ -679,32 +679,58 @@ const DuffelBookingFlow = ({ user }) => {
         )}
 
         {step === 'CONFIRMED' && confirmedBooking && (
-          <div className="bg-white p-12 rounded-[2.5rem] shadow-2xl border-t-8 border-green-500 text-center animate-in zoom-in-95">
-             <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6 text-5xl">✓</div>
-             <h2 className="text-4xl font-black text-gray-900 mb-2">Booking Confirmed!</h2>
-             <p className="text-gray-500 font-bold text-lg mb-8">Your flight has been ticketed. PNR: <span className="text-indigo-600 font-black">{confirmedBooking.booking_reference}</span></p>
-             
-             <div className="bg-gray-50 rounded-3xl p-8 max-w-2xl mx-auto text-left border border-gray-100 space-y-4">
-                <div className="flex justify-between border-b pb-4">
-                   <span className="text-gray-400 font-black uppercase text-xs tracking-widest">Airline</span>
-                   <span className="font-bold">{confirmedBooking.slices[0].segments[0].operating_carrier.name}</span>
+          <div className="space-y-8 animate-in zoom-in-95 duration-700">
+             <div className="bg-white p-12 rounded-[3rem] shadow-2xl border-t-8 border-green-500 text-center relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-5">
+                   <svg className="w-64 h-64" fill="currentColor" viewBox="0 0 24 24"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.97 4.43c-.31.17-.66.21-1 .12l-8.13-1.89c-.35-.08-.65-.31-.8-.63L1.05 15.6c-.16-.38-.07-.81.22-1.1L4.24 11.5c.29-.29.72-.38 1.1-.22l3.81 1.52c.1.04.21.05.3.04l6.09-1.22c.36-.07.72.06.96.34l3.94 4.54c.17.2.26.46.26.74v.8z"/></svg>
                 </div>
-                <div className="flex justify-between border-b pb-4">
-                   <span className="text-gray-400 font-black uppercase text-xs tracking-widest">Route</span>
-                   <span className="font-bold">{confirmedBooking.slices[0].segments[0].origin.iata_code} → {confirmedBooking.slices[0].segments[0].destination.iata_code}</span>
-                </div>
-                <div className="flex justify-between">
-                   <span className="text-gray-400 font-black uppercase text-xs tracking-widest">Status</span>
-                   <span className="text-green-600 font-black">TICKETED / PAID</span>
-                </div>
-             </div>
 
-             <div className="mt-12 flex flex-col md:flex-row gap-4 justify-center">
-                <button onClick={() => navigate('/dashboard')} className="px-10 py-4 bg-gray-900 text-white font-black rounded-2xl hover:bg-black transition shadow-lg">View in Dashboard</button>
-                <button onClick={() => setStep('SEARCH')} className="px-10 py-4 bg-white border-2 border-gray-100 text-gray-900 font-black rounded-2xl hover:bg-gray-50 transition">Search New Flight</button>
+                <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-8 text-5xl shadow-xl shadow-green-100 animate-bounce">✓</div>
+                <h2 className="text-5xl font-black text-gray-900 mb-2 tracking-tight">Booking Confirmed!</h2>
+                <p className="text-gray-500 font-bold text-xl mb-12">Your flight has been ticketed. PNR: <span className="text-indigo-600 font-black px-4 py-1 bg-indigo-50 rounded-xl ml-2">{confirmedBooking.booking_reference}</span></p>
+                
+                {/* Timeline in Success Page */}
+                <div className="bg-gray-50 rounded-[2.5rem] p-8 md:p-12 mb-12 text-left border border-gray-100 space-y-12">
+                   <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-200 pb-4">Itinerary Overview</h3>
+                   <div className="space-y-10 border-l-4 border-indigo-100 ml-4 pl-8 relative">
+                      {confirmedBooking.slices?.[0]?.segments.map((segment, idx) => (
+                        <div key={idx} className="relative">
+                           <div className="absolute -left-[44px] top-0 w-5 h-5 bg-indigo-600 rounded-full border-4 border-white shadow-md shadow-indigo-200" />
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                              <div>
+                                 <p className="text-3xl font-black text-gray-900">{segment.origin.iata_code} <span className="text-sm font-bold text-gray-400">({segment.origin.name})</span></p>
+                                 <p className="text-indigo-600 font-black mt-1">{new Date(segment.departing_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                              </div>
+                              <div className="md:text-right">
+                                 <p className="text-3xl font-black text-gray-900">{segment.destination.iata_code} <span className="text-sm font-bold text-gray-400">({segment.destination.name})</span></p>
+                                 <p className="text-indigo-600 font-black mt-1">{new Date(segment.arriving_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                              </div>
+                           </div>
+                           
+                           {/* Simplified Layover for Success Page */}
+                           {idx < confirmedBooking.slices[0].segments.length - 1 && (
+                              <div className="mt-8 py-2 px-6 bg-white border border-indigo-50 rounded-2xl inline-flex items-center gap-3 shadow-sm">
+                                 <span className="w-2 h-2 bg-amber-400 rounded-full" />
+                                 <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                                    Connection in {confirmedBooking.slices[0].segments[idx+1].origin.iata_code}
+                                 </span>
+                              </div>
+                           )}
+                        </div>
+                      ))}
+                   </div>
+                </div>
+
+                <div className="flex flex-col md:flex-row gap-6 justify-center">
+                   <button onClick={() => navigate('/dashboard')} className="px-12 py-5 bg-gray-900 text-white font-black rounded-2xl hover:bg-black transition-all shadow-2xl shadow-gray-200 active:scale-[0.98]">Go to My Dashboard</button>
+                   <button onClick={() => setStep('SEARCH')} className="px-12 py-5 bg-white border-2 border-gray-100 text-gray-900 font-black rounded-2xl hover:bg-gray-50 transition-all active:scale-[0.98]">Book Another Flight</button>
+                </div>
+                
+                <p className="mt-10 text-sm text-gray-400 font-bold flex items-center justify-center gap-2">
+                   <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                   Confirmation email and E-ticket have been sent to your inbox.
+                </p>
              </div>
-             
-             <p className="mt-8 text-sm text-gray-400 font-medium">A confirmation email with your e-ticket has been sent to your inbox.</p>
           </div>
         )}
 
