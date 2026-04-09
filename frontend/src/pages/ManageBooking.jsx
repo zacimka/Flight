@@ -178,15 +178,25 @@ const ManageBooking = () => {
               <div className="bg-white rounded-[3rem] shadow-sm border border-gray-100 overflow-hidden">
                  <div className="p-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 border-b border-gray-50">
                     <div className="space-y-2">
-                       <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Confirmation ID</span>
-                       <h2 className="text-5xl font-black text-gray-900 tracking-tighter">{booking?.booking_reference}</h2>
+                       <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">{booking.status === 'cancelled' ? 'Cancelled Order' : 'Confirmation ID'}</span>
+                       <h2 className={`text-5xl font-black tracking-tighter ${booking.status === 'cancelled' ? 'text-red-600' : 'text-gray-900'}`}>{booking?.booking_reference}</h2>
                     </div>
                     <div className="flex gap-4">
-                       <div className="bg-green-100 text-green-700 font-black px-8 py-3 rounded-full text-xs uppercase tracking-widest border border-green-200 shadow-sm">
+                       <div className={`${booking.status === 'cancelled' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-green-100 text-green-700 border-green-200'} font-black px-8 py-3 rounded-full text-xs uppercase tracking-widest border shadow-sm`}>
                           {booking?.status?.toUpperCase() || 'CONFIRMED'}
                        </div>
                     </div>
                  </div>
+
+                 {booking.status === 'cancelled' && (
+                    <div className="bg-red-50 p-8 border-b border-red-100 flex items-center gap-6">
+                       <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-2xl shadow-sm border border-red-100">⚠️</div>
+                       <div>
+                          <p className="font-black text-red-900 uppercase tracking-tight">Order has been cancelled</p>
+                          <p className="text-xs font-bold text-red-600/70 uppercase tracking-widest mt-1">Nasiib darro, dalabkan mar hore ayaa la joojiyay laguna soo celiyay lacagtii.</p>
+                       </div>
+                    </div>
+                 )}
 
                  <div className="p-10 md:p-14">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
@@ -322,32 +332,36 @@ const ManageBooking = () => {
               
               {/* Management Actions */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                 <button 
-                   onClick={handleChangeFlight}
-                   className="p-10 bg-white rounded-[3rem] border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col items-center gap-4"
-                 >
-                    <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-3xl group-hover:bg-blue-600 group-hover:text-white transition-all">🔄</div>
-                    <div className="text-center">
-                       <p className="font-black text-gray-900 uppercase tracking-tighter text-lg">Change Flights</p>
-                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Modify Journey</p>
-                    </div>
-                 </button>
+                 {booking.status !== 'cancelled' && (
+                    <>
+                       <button 
+                         onClick={handleChangeFlight}
+                         className="p-10 bg-white rounded-[3rem] border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col items-center gap-4"
+                       >
+                          <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-3xl group-hover:bg-blue-600 group-hover:text-white transition-all">🔄</div>
+                          <div className="text-center">
+                             <p className="font-black text-gray-900 uppercase tracking-tighter text-lg">Change Flights</p>
+                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Modify Journey</p>
+                          </div>
+                       </button>
 
-                 <button 
-                   onClick={handleCancelRequest}
-                   disabled={cancelling}
-                   className="p-10 bg-white rounded-[3rem] border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col items-center gap-4"
-                 >
-                    <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center text-3xl group-hover:bg-red-600 group-hover:text-white transition-all">❌</div>
-                    <div className="text-center">
-                       <p className="font-black text-gray-900 uppercase tracking-tighter text-lg">Cancel Order</p>
-                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Request Refund</p>
-                    </div>
-                 </button>
+                       <button 
+                         onClick={handleCancelRequest}
+                         disabled={cancelling}
+                         className="p-10 bg-white rounded-[3rem] border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col items-center gap-4"
+                       >
+                          <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center text-3xl group-hover:bg-red-600 group-hover:text-white transition-all">❌</div>
+                          <div className="text-center">
+                             <p className="font-black text-gray-900 uppercase tracking-tighter text-lg">Cancel Order</p>
+                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Request Refund</p>
+                          </div>
+                       </button>
+                    </>
+                 )}
 
                  <button 
                    onClick={requestInvoice}
-                   className="p-10 bg-white rounded-[3rem] border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col items-center gap-4"
+                   className={`p-10 bg-white rounded-[3rem] border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col items-center gap-4 ${booking.status === 'cancelled' ? 'md:col-span-3' : ''}`}
                  >
                     <div className="w-16 h-16 bg-gray-50 text-gray-900 rounded-2xl flex items-center justify-center text-3xl group-hover:bg-black group-hover:text-white transition-all">📄</div>
                     <div className="text-center">

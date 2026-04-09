@@ -895,12 +895,8 @@ const retrieveOrderDetail = async (req, res) => {
     // Get the full order details (list might be summary)
     const order = await duffel.orders.get(ordersList.data[0].id);
 
-    // 1b. Check if order is already cancelled
-    if (order.data.status === 'cancelled') {
-      return res.status(404).json({ 
-        message: 'This booking has been cancelled and is no longer accessible.' 
-      });
-    }
+    // 1b. Check if order is already cancelled (Comment out or modify to allow viewing)
+    // We will allow viewing cancelled orders so the user can see the status in the UI.
 
     // 2. Validate Last Name against passengers
     const nameMatches = order.data.passengers.some(p => 
