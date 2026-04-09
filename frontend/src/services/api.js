@@ -5,11 +5,13 @@ function resolveApiBaseURL() {
   let raw = import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/$/, '') || '';
   if (raw === 'undefined' || raw === 'null') raw = '';
   
+  // If no env variable is set → use relative path so Vite proxy handles it in dev
+  // and the production fallback in the smart-url logic handles it in prod
   if (!raw) {
      if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-        return 'http://localhost:5002/api';
+        return '/api'; // Vite proxy takes over (vite.config.js → localhost:5002)
      }
-     return 'https://flight-1-ca15.onrender.com/api';
+     return 'https://flight-1-ca15.onrender.com/api'; // production fallback
   }
   if (raw.endsWith('/api')) return raw;
   return `${raw}/api`;
