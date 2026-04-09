@@ -177,6 +177,16 @@ const DuffelBookingFlow = ({ user }) => {
     if (!user) return setError('Login required to complete booking.');
     setLoading(true);
     setError(null);
+
+    // Validation
+    for (const p of passengerDetails) {
+      if (!p.given_name || !p.family_name || !p.born_on || !p.gender || !p.title) {
+        setError(`Fadlan buuxi xogta rakaabka ${p.type} (Magaca, Taariikhda dhalashada, iyo Title-ka).`);
+        setLoading(false);
+        return;
+      }
+    }
+
     try {
       const offerAmount = parseFloat(selectedOffer.total_amount);
       const ancillaryAmount = parseFloat(ancillaryTotal?.total || 0);
