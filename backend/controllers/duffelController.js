@@ -687,9 +687,10 @@ const confirmBooking = async (req, res) => {
       orderData.services = services;
     }
 
-    // 3. Issue ticket via balance directly to Duffel
+    // 3. Issue ticket via Duffel Payments
+    const isTestMode = (process.env.DUFFEL_API_KEY || '').startsWith('duffel_test_');
     orderData.payments = [{
-        type: 'balance',
+        type: isTestMode ? 'balance' : 'arc_bsp_cash',
         amount: duffelTotalToPay.toFixed(2).toString(),
         currency: offer.data.total_currency
     }];
@@ -750,10 +751,17 @@ const confirmBooking = async (req, res) => {
     });
   } catch (error) {
     console.error('Duffel Order Creation Error:', JSON.stringify(error.errors || error.message, null, 2));
+    
+    // Extract specific Duffel errors if available
+    let errorDetails = error.message;
+    if (error.errors && Array.isArray(error.errors) && error.errors.length > 0) {
+       errorDetails = error.errors.map(e => `${e.title}: ${e.message}`).join(' | ');
+    }
+
     res.status(500).json({ 
       success: false,
       message: 'Booking Failed', 
-      details: error.message,
+      details: errorDetails,
       debug: error.errors 
     });
   }
