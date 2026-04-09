@@ -34,7 +34,8 @@ const allowedOrigins = [
   'https://flight-1-ca15.onrender.com',
   'https://flight-8tvi.onrender.com',
   'http://localhost:5173',
-  'http://localhost:3001'
+  'http://localhost:3001',
+  'http://localhost:3002'
 ];
 const corsOptions = {
   origin: function (origin, callback) {
