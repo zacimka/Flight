@@ -414,10 +414,39 @@ const confirmOrderChange = async (req, res) => {
   try {
     const { change_id } = req.params;
     const { payment } = req.body;
-    const change = await duffel.orderChanges.confirm(change_id, { payment });
-    res.json({ data: change.data });
+    
+    // 1. Confirm the change in Duffel
+    const changeResponse = await duffel.orderChanges.confirm(change_id, { payment });
+    
+    // 2. Fetch the updated full order to sync with database
+    const updatedOrder = await duffel.orders.get(changeResponse.data.order_id);
+
+    // 3. Update local database
+    try {
+      await Booking.findOneAndUpdate(
+        { duffelOrderId: updatedOrder.data.id },
+        { 
+          slices: updatedOrder.data.slices,
+          total_amount: updatedOrder.data.total_amount,
+          status: updatedOrder.data.status // e.g. 'confirmed'
+        }
+      );
+      console.log(`Local booking ${updatedOrder.data.id} updated after change.`);
+    } catch (dbErr) {
+      console.error('Failed to sync booking update to DB:', dbErr.message);
+    }
+
+    res.json({ 
+       success: true, 
+       message: 'Order changed successfully', 
+       data: updatedOrder.data 
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to confirm order change', details: error.errors || error.message });
+    res.status(500).json({ 
+       success: false, 
+       message: 'Failed to confirm order change', 
+       details: error.errors || error.message 
+    });
   }
 };
 
