@@ -32,8 +32,9 @@ const CABIN_CLASSES = ['economy', 'premium_economy', 'business', 'first'];
 const DuffelBookingFlow = ({ user }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [step, setStep] = useState('SEARCH');   // SEARCH → SELECT_OFFER → ANCILLARIES → PASSENGER_DETAILS
+  const [step, setStep] = useState('SEARCH');   // SEARCH → SELECT_OFFER → ANCILLARIES → PASSENGER_DETAILS → CONFIRMED
   const [loading, setLoading] = useState(false);
+  const [confirmedBooking, setConfirmedBooking] = useState(null);
   const [error, setError] = useState(null);
 
   // ── SEARCH STATE ─────────────────────────────────────────────────────────
@@ -67,6 +68,7 @@ const DuffelBookingFlow = ({ user }) => {
      if (step === 'SEARCH') navigate('/search', { replace: true });
      else if (step === 'SELECT_OFFER') navigate('/flights', { replace: true });
      else if (step === 'ANCILLARIES' || step === 'PASSENGER_DETAILS') navigate('/checkout', { replace: true });
+     else if (step === 'CONFIRMED') navigate('/order-confirmation', { replace: true });
   }, [step, navigate]);
 
   const [offers, setOffers] = useState([]);
@@ -227,7 +229,8 @@ const DuffelBookingFlow = ({ user }) => {
           res = await createDuffelBooking(payload, user.token);
       }
 
-      navigate('/order-confirmation', { state: { booking: res.data.data } });
+      setConfirmedBooking(res.data.data);
+      setStep('CONFIRMED');
       toast.success('Payment Successful! Check your email.');
     } catch (err) {
       console.error('Final Booking Error:', err);
@@ -254,11 +257,14 @@ const DuffelBookingFlow = ({ user }) => {
       <main className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50/30 py-12 px-4 sm:px-6 lg:px-8">
         <div ref={resultsRef} className="max-w-5xl mx-auto space-y-8">
 
+        {step !== 'CONFIRMED' && (
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-black text-gray-900 tracking-tight">ZamGo Live Booking</h1>
           <p className="text-gray-400 font-medium">Powered by Duffel — real-time airline inventory</p>
         </div>
+        )}
 
+        {step !== 'CONFIRMED' && (
         <div className="flex items-center justify-center gap-2">
           {STEP_LABELS.map((label, i) => (
             <React.Fragment key={label}>
@@ -275,6 +281,7 @@ const DuffelBookingFlow = ({ user }) => {
             </React.Fragment>
           ))}
         </div>
+        )}
 
         {error && (
           <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl text-red-700 font-semibold">
@@ -668,6 +675,36 @@ const DuffelBookingFlow = ({ user }) => {
             <div className="flex border-t border-gray-100 pt-6">
               <button type="button" onClick={() => setStep('ANCILLARIES')} className="text-gray-400 font-bold hover:text-gray-900 transition">← Back to Extras</button>
             </div>
+          </div>
+        )}
+
+        {step === 'CONFIRMED' && confirmedBooking && (
+          <div className="bg-white p-12 rounded-[2.5rem] shadow-2xl border-t-8 border-green-500 text-center animate-in zoom-in-95">
+             <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6 text-5xl">✓</div>
+             <h2 className="text-4xl font-black text-gray-900 mb-2">Booking Confirmed!</h2>
+             <p className="text-gray-500 font-bold text-lg mb-8">Your flight has been ticketed. PNR: <span className="text-indigo-600 font-black">{confirmedBooking.booking_reference}</span></p>
+             
+             <div className="bg-gray-50 rounded-3xl p-8 max-w-2xl mx-auto text-left border border-gray-100 space-y-4">
+                <div className="flex justify-between border-b pb-4">
+                   <span className="text-gray-400 font-black uppercase text-xs tracking-widest">Airline</span>
+                   <span className="font-bold">{confirmedBooking.slices[0].segments[0].operating_carrier.name}</span>
+                </div>
+                <div className="flex justify-between border-b pb-4">
+                   <span className="text-gray-400 font-black uppercase text-xs tracking-widest">Route</span>
+                   <span className="font-bold">{confirmedBooking.slices[0].segments[0].origin.iata_code} → {confirmedBooking.slices[0].segments[0].destination.iata_code}</span>
+                </div>
+                <div className="flex justify-between">
+                   <span className="text-gray-400 font-black uppercase text-xs tracking-widest">Status</span>
+                   <span className="text-green-600 font-black">TICKETED / PAID</span>
+                </div>
+             </div>
+
+             <div className="mt-12 flex flex-col md:flex-row gap-4 justify-center">
+                <button onClick={() => navigate('/dashboard')} className="px-10 py-4 bg-gray-900 text-white font-black rounded-2xl hover:bg-black transition shadow-lg">View in Dashboard</button>
+                <button onClick={() => setStep('SEARCH')} className="px-10 py-4 bg-white border-2 border-gray-100 text-gray-900 font-black rounded-2xl hover:bg-gray-50 transition">Search New Flight</button>
+             </div>
+             
+             <p className="mt-8 text-sm text-gray-400 font-medium">A confirmation email with your e-ticket has been sent to your inbox.</p>
           </div>
         )}
 
