@@ -2,19 +2,19 @@ import axios from 'axios';
 
 /** Backend mounts all routes under `/api` (see backend/app.js). Accept env as origin-only or full API root. */
 function resolveApiBaseURL() {
-  let raw = import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/$/, '') || '';
-  if (raw === 'undefined' || raw === 'null') raw = '';
-  
-  // If no env variable is set → use relative path so Vite proxy handles it in dev
-  // and the production fallback in the smart-url logic handles it in prod
-  if (!raw) {
-     if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-        return '/api'; // Vite proxy takes over (vite.config.js → localhost:5002)
-     }
-     return 'https://flight-1-ca15.onrender.com/api'; // production fallback
+  // If an explicit env variable is given (set in Render Dashboard), use it
+  const env = import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/$/, '');
+  if (env && env !== 'undefined' && env !== 'null') {
+    return env.endsWith('/api') ? env : `${env}/api`;
   }
-  if (raw.endsWith('/api')) return raw;
-  return `${raw}/api`;
+
+  // Auto-detect: if running on localhost → use Vite proxy (relative path, no CORS)
+  // If running on production (zamgotravel.com or any other domain) → use Render
+  const isLocalhost =
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1';
+
+  return isLocalhost ? '/api' : 'https://flight-1-ca15.onrender.com/api';
 }
 
 const API = axios.create({ baseURL: resolveApiBaseURL(), timeout: 30000 });
