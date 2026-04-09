@@ -18,8 +18,8 @@ if (!process.env.DUFFEL_API_KEY && !process.env.DUFFEL_ACCESS_TOKEN) {
   console.error("❌ CRITICAL ERROR: Duffel API Token is missing from environment variables!");
   process.exit(1);
 }
-if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY.includes('your_stripe')) {
-  console.error("❌ CRITICAL ERROR: Stripe Secret Key is missing or invalid placeholder!");
+if (!process.env.STRIPE_SECRET_KEY) {
+  console.error("❌ CRITICAL ERROR: Stripe Secret Key is missing!");
   process.exit(1);
 }
 // Normalize env aliases for seamless deployment
@@ -66,17 +66,8 @@ app.use("/api/webhooks/stripe", express.raw({ type: "application/json" }));
 // Status Check
 app.get("/api/status", (req, res) => res.json({ status: "ZamGo Travel API is online", timestamp: new Date() }));
 
-// Environment Variables Diagnostic Route (Shows keys exist without exposing values)
-app.get("/api/env-check", (req, res) => {
-  res.json({
-    status: "Diagnostics Running",
-    DUFFEL_API_KEY_EXISTS: !!process.env.DUFFEL_API_KEY,
-    STRIPE_SECRET_KEY_EXISTS: !!process.env.STRIPE_SECRET_KEY,
-    MONGO_URI_EXISTS: !!process.env.MONGO_URI,
-    NODE_ENV: process.env.NODE_ENV || 'development',
-    server_time: new Date()
-  });
-});
+// NODE_ENV management
+if (!process.env.NODE_ENV) process.env.NODE_ENV = 'production';
 
 // Routes
 app.use("/api/auth", require("./routes/auth"));
