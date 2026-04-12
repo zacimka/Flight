@@ -15,6 +15,7 @@ const AdminDashboard = ({ user }) => {
   const [markup, setMarkupState] = useState({ type: "fixed", value: 20 });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("analytics");
+  const [selectedBooking, setSelectedBooking] = useState(null); // For modal
 
   const loadData = async () => {
     try {
@@ -202,14 +203,22 @@ const AdminDashboard = ({ user }) => {
                                    <p className="text-[10px] text-blue-500 font-bold">+${(b.markup || 0).toFixed(2)}</p>
                                 </td>
                                 <td className="px-8 py-4 text-right">
-                                   {b.status === 'paid' && (
-                                     <button 
-                                       onClick={() => onRefundTrigger(b._id)}
-                                       className="text-[10px] font-black text-red-500 hover:bg-red-50 px-3 py-1 rounded-lg transition"
-                                     >
-                                       Refund
-                                     </button>
-                                   )}
+                                   <div className="flex justify-end gap-2 text-right">
+                                      <button 
+                                         onClick={() => setSelectedBooking(b)}
+                                         className="text-[10px] font-black text-blue-600 hover:bg-blue-50 px-3 py-1 rounded-lg transition border border-blue-100"
+                                      >
+                                         Details
+                                      </button>
+                                      {b.status === 'paid' && (
+                                        <button 
+                                          onClick={() => onRefundTrigger(b._id)}
+                                          className="text-[10px] font-black text-red-500 hover:bg-red-50 px-3 py-1 rounded-lg transition"
+                                        >
+                                          Refund
+                                        </button>
+                                      )}
+                                   </div>
                                 </td>
                              </tr>
                            ))}
@@ -256,6 +265,123 @@ const AdminDashboard = ({ user }) => {
           </div>
         )}
       </div>
+      {/* BOOKING DETAILS MODAL */}
+      {selectedBooking && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+           <div className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[2.5rem] shadow-2xl animate-in zoom-in-95 duration-300">
+              <div className="sticky top-0 bg-white border-b border-gray-100 p-8 flex justify-between items-center z-10">
+                 <div>
+                    <h2 className="text-2xl font-black text-gray-900 leading-tight">Booking Manifest</h2>
+                    <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">ID: {selectedBooking._id} • PNR: <span className="text-blue-600">{selectedBooking.pnr || 'NOT_ISSUED'}</span></p>
+                 </div>
+                 <button onClick={() => setSelectedBooking(null)} className="w-12 h-12 bg-gray-50 hover:bg-gray-100 rounded-2xl flex items-center justify-center text-xl transition">✕</button>
+              </div>
+
+              <div className="p-8 space-y-12">
+                 {/* Flight Path */}
+                 <div className="grid md:grid-cols-2 gap-8">
+                    <div className="p-8 bg-gray-50 rounded-3xl border border-gray-100">
+                       <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">Flight Logistics</h4>
+                       <div className="space-y-6">
+                          <div className="flex justify-between items-end border-b border-gray-200 pb-4">
+                             <div>
+                                <p className="text-xs text-gray-400 font-bold">DEPARTURE</p>
+                                <p className="text-xl font-black text-gray-900">{selectedBooking.airportFrom}</p>
+                                <p className="text-[10px] text-gray-500 font-medium">{new Date(selectedBooking.departureDate).toLocaleString()}</p>
+                             </div>
+                             <div className="text-right">
+                                <p className="text-xs text-gray-400 font-bold">ARRIVAL</p>
+                                <p className="text-xl font-black text-gray-900">{selectedBooking.airportTo}</p>
+                                <p className="text-[10px] text-gray-500 font-medium">{selectedBooking.arrivalDate ? new Date(selectedBooking.arrivalDate).toLocaleString() : 'N/A'}</p>
+                             </div>
+                          </div>
+                          <div className="flex gap-4 items-center">
+                             <div className="w-10 h-10 bg-white rounded-xl shadow-sm border border-gray-100 flex items-center justify-center">✈️</div>
+                             <div>
+                                <p className="text-sm font-bold text-gray-800">{selectedBooking.airline} - {selectedBooking.flightNumber}</p>
+                                <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Cabin: {selectedBooking.flightData?.cabin_class || 'Economy'}</p>
+                             </div>
+                          </div>
+                       </div>
+                    </div>
+
+                    <div className="p-8 bg-blue-50/50 rounded-3xl border border-blue-100">
+                       <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">Financial Summary</h4>
+                       <div className="space-y-4">
+                          <div className="flex justify-between text-sm">
+                             <span className="text-gray-500 font-medium">Airline Net Cost:</span>
+                             <span className="text-gray-900 font-bold">${(selectedBooking.basePrice || 0).toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                             <span className="text-blue-600 font-black italic">ZamGo Markup:</span>
+                             <span className="text-blue-600 font-black">+${(selectedBooking.markup || 0).toFixed(2)}</span>
+                          </div>
+                          <div className="pt-4 border-t border-blue-100 flex justify-between items-end">
+                             <span className="text-lg font-black text-gray-900">Paid by Client:</span>
+                             <span className="text-2xl font-black text-blue-600">${(selectedBooking.finalPrice || 0).toFixed(2)}</span>
+                          </div>
+                          <div className="pt-2">
+                             <p className="text-[10px] text-gray-400 font-bold italic">Payment ID: {selectedBooking.paymentId || 'N/A'}</p>
+                          </div>
+                       </div>
+                    </div>
+                 </div>
+
+                 {/* Passengers */}
+                 <div>
+                    <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">Passenger Manifest</h4>
+                    <div className="grid gap-4">
+                       {selectedBooking.passengers?.map((p, idx) => (
+                         <div key={idx} className="p-6 bg-white border border-gray-100 rounded-3xl flex justify-between items-center group hover:border-blue-200 transition">
+                            <div className="flex items-center gap-5">
+                               <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-xl grayscale group-hover:grayscale-0 transition">
+                                  {p.gender === 'm' ? '🧔' : '👩'}
+                               </div>
+                               <div>
+                                  <p className="text-lg font-black text-gray-900 leading-tight">{p.firstName} {p.lastName}</p>
+                                  <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-0.5">{p.type} • DOB: {new Date(p.birthDate).toLocaleDateString()}</p>
+                               </div>
+                            </div>
+                            <div className="text-right">
+                               <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Identity</p>
+                               <p className="text-sm font-bold text-gray-700">{p.passportNumber || 'No Passport On File'}</p>
+                            </div>
+                         </div>
+                       ))}
+                       {(!selectedBooking.passengers || selectedBooking.passengers.length === 0) && (
+                         <div className="py-12 text-center bg-gray-50 rounded-3xl border border-dashed border-gray-200 text-gray-400 font-bold italic">
+                            No passenger details recorded for this ledger entry.
+                         </div>
+                       )}
+                    </div>
+                 </div>
+
+                 {/* Contact & Support */}
+                 <div className="p-8 bg-gray-900 rounded-[2.5rem] text-white overflow-hidden relative">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+                    <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+                       <div>
+                          <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Customer Outreach</p>
+                          <h4 className="text-2xl font-black leading-tight">Primary Contact Node</h4>
+                       </div>
+                       <div className="space-y-2">
+                          <p className="text-lg font-bold flex items-center gap-3">
+                             <span className="opacity-50">📧</span> {selectedBooking.contact?.email || selectedBooking.userId?.email || 'N/A'}
+                          </p>
+                          <p className="text-lg font-bold flex items-center gap-3">
+                             <span className="opacity-50">📞</span> {selectedBooking.contact?.phone || 'No Phone Number'}
+                          </p>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+              
+              <div className="p-8 bg-gray-50 border-t border-gray-100 flex justify-end">
+                 <button onClick={() => setSelectedBooking(null)} className="px-10 py-4 bg-gray-900 text-white font-black rounded-2xl hover:bg-black transition shadow-lg">Close Details</button>
+              </div>
+           </div>
+        </div>
+      )}
     </main>
   );
 };
