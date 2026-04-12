@@ -174,8 +174,9 @@ const AdminDashboard = ({ user }) => {
                            {bookings.slice(0, 100).map((b) => (
                              <tr key={b._id} className="hover:bg-blue-50/30 transition-colors">
                                 <td className="px-8 py-4">
-                                   <p className="text-sm font-bold text-gray-900">{b.userId?.name || b.contact?.email || 'Customer'}</p>
-                                   <p className="text-[10px] text-gray-400">{b.airportFrom} → {b.airportTo}</p>
+                                   <p className="text-sm font-bold text-gray-900">{b.userId?.name || b.contact?.email || `Legacy Client (${b._id.slice(-4)})`}</p>
+                                   <p className="text-[10px] text-gray-400">{b.airportFrom || 'Unknown'} → {b.airportTo || 'Unknown'}</p>
+                                   <p className="text-[9px] text-gray-400 italic">Booked: {new Date(b.createdAt).toLocaleDateString()}</p>
                                    {b.passengers && b.passengers.length > 0 && (
                                       <p className="text-[9px] text-blue-500 font-bold uppercase mt-1">
                                          {b.passengers.map(p => `${p.firstName} ${p.lastName}`).join(', ')}
