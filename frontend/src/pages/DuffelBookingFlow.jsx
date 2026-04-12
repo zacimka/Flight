@@ -130,7 +130,11 @@ const DuffelBookingFlow = ({ user }) => {
 
     setLoading(true);
     setError(null);
+    setOffers([]); 
+    sessionStorage.removeItem('zamgo_offers');
+    sessionStorage.removeItem('zamgo_selected_offer');
     try {
+      console.log(`[Search] Querying: ${searchParams.origin} to ${searchParams.destination}`);
       const payload = {
         origin: searchParams.origin.toUpperCase(),
         destination: searchParams.destination.toUpperCase(),
@@ -178,9 +182,12 @@ const DuffelBookingFlow = ({ user }) => {
          setOffers(res.data.data.offers || []);
       }
 
-      if (((res.data.data.offers || res.data.data.order_change_offers) || []).length === 0)
-        setError('Ma jiro duulimaad taariikhdan, fadlan isku day maalin kale.');
-      else setStep('SELECT_OFFER');
+      const foundOffers = res.data.data.offers || res.data.data.order_change_offers || [];
+      if (foundOffers.length === 0) {
+        setError(`Ma jiro duulimaad u kala gosha ${searchParams.origin} iyo ${searchParams.destination} taariikhdan (${searchParams.departure_date}). Fadlan isku day maalin kale.`);
+      } else {
+        setStep('SELECT_OFFER');
+      }
     } catch (err) {
       if (err.message && err.message.toLowerCase().includes('network error')) {
          setError('Khadka Internet-kaaga ama Xiriirka Server-ka ayaa go\'ay. Fadlan dib u Load-garee bogga.');

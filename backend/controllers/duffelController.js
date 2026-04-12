@@ -77,7 +77,10 @@ const searchFlights = async (req, res) => {
     if (airline_credit_ids && Array.isArray(airline_credit_ids))
       requestPayload.airline_credit_ids = airline_credit_ids;
 
+    console.log(`[Duffel] Searching for ${origin} -> ${destination} on ${departure_date}. Passengers: Adults=${adults}, Children=${children}`);
     const offerRequest = await duffel.offerRequests.create(requestPayload);
+    console.log(`[Duffel] Created Offer Request: ${offerRequest.data.id}. Offers found: ${(offerRequest.data.offers || []).length}`);
+    
     let limitedOffers = (offerRequest.data.offers || []).slice(0, 50);
 
     // Apply ZamGo Markup to each offer instantly
@@ -103,7 +106,8 @@ const searchFlights = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Duffel Search Error:', error.message);
+    console.error('❌ Duffel Search Error:', error.message);
+    if (error.errors) console.error('Duffel API Details:', JSON.stringify(error.errors, null, 2));
     res.status(500).json({ message: 'Flight search failed', details: error.errors || error.message });
   }
 };

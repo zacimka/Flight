@@ -14,9 +14,9 @@ if (!process.env.MONGO_URI && !process.env.MONGODB_URI) {
   console.error("❌ CRITICAL ERROR: MongoDB URI is missing from environment variables!");
   process.exit(1);
 }
-if (!process.env.DUFFEL_API_KEY && !process.env.DUFFEL_ACCESS_TOKEN) {
-  console.error("❌ CRITICAL ERROR: Duffel API Token is missing from environment variables!");
-  process.exit(1);
+if (process.env.DUFFEL_API_KEY) {
+  const prefix = process.env.DUFFEL_API_KEY.substring(0, 11);
+  console.log(`[Config] Duffel Token detected starting with: ${prefix}...`);
 }
 if (!process.env.STRIPE_SECRET_KEY) {
   console.error("❌ CRITICAL ERROR: Stripe Secret Key is missing!");
