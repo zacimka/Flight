@@ -64,21 +64,6 @@ const DuffelBookingFlow = ({ user }) => {
     loyalty_airline_iata: '',
   });
 
-  useEffect(() => {
-     // Save state to sessionStorage
-     if (confirmedBooking) sessionStorage.setItem('zamgo_confirmed', JSON.stringify(confirmedBooking));
-     if (offers.length > 0) sessionStorage.setItem('zamgo_offers', JSON.stringify(offers));
-     if (selectedOffer) sessionStorage.setItem('zamgo_selected_offer', JSON.stringify(selectedOffer));
-     if (passengerDetails.length > 0) sessionStorage.setItem('zamgo_passengers', JSON.stringify(passengerDetails));
-  }, [confirmedBooking, offers, selectedOffer, passengerDetails]);
-
-  useEffect(() => {
-     // Auto trigger search if coming from homepage with populated mandatory fields
-     if (location.state?.origin && location.state?.destination && location.state?.departure_date) {
-        fetchOffers({ preventDefault: () => {} });
-     }
-  }, []);
-
   const resultsRef = useRef(null);
 
   useEffect(() => {
@@ -106,6 +91,21 @@ const DuffelBookingFlow = ({ user }) => {
      const saved = sessionStorage.getItem('zamgo_passengers');
      return saved ? JSON.parse(saved) : [];
   });
+
+  useEffect(() => {
+     // Save state to sessionStorage
+     if (confirmedBooking) sessionStorage.setItem('zamgo_confirmed', JSON.stringify(confirmedBooking));
+     if (offers.length > 0) sessionStorage.setItem('zamgo_offers', JSON.stringify(offers));
+     if (selectedOffer) sessionStorage.setItem('zamgo_selected_offer', JSON.stringify(selectedOffer));
+     if (passengerDetails.length > 0) sessionStorage.setItem('zamgo_passengers', JSON.stringify(passengerDetails));
+  }, [confirmedBooking, offers, selectedOffer, passengerDetails]);
+
+  useEffect(() => {
+     // Auto trigger search if coming from homepage with populated mandatory fields
+     if (location.state?.origin && location.state?.destination && location.state?.departure_date) {
+        fetchOffers({ preventDefault: () => {} });
+     }
+  }, [location.state]); // Added dependency to be safe
 
   // ── ANCILLARY STATE ───────────────────────────────────────────────────────
   const [ancillaryServices, setAncillaryServices] = useState([]); // [{ id, quantity }]
