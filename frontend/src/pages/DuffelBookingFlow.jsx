@@ -32,11 +32,23 @@ class ErrorBoundary extends React.Component {
 const CABIN_CLASSES = ['economy', 'premium_economy', 'business', 'first'];
 
 const DuffelBookingFlow = ({ user }) => {
+  // Helper to determine initial step from URL
+  const getInitialStep = () => {
+     const path = window.location.pathname;
+     if (path === '/flights') return 'SELECT_OFFER';
+     if (path === '/checkout') return 'PASSENGER_DETAILS';
+     if (path === '/order-confirmation') return 'CONFIRMED';
+     return 'SEARCH';
+  };
+
   const navigate = useNavigate();
   const location = useLocation();
-  const [step, setStep] = useState('SEARCH');   // SEARCH → SELECT_OFFER → ANCILLARIES → PASSENGER_DETAILS → CONFIRMED
+  const [step, setStep] = useState(getInitialStep());
   const [loading, setLoading] = useState(false);
-  const [confirmedBooking, setConfirmedBooking] = useState(null);
+  const [confirmedBooking, setConfirmedBooking] = useState(() => {
+     const saved = sessionStorage.getItem('zamgo_confirmed');
+     return saved ? JSON.parse(saved) : null;
+  });
   const [error, setError] = useState(null);
 
   // ── SEARCH STATE ─────────────────────────────────────────────────────────
@@ -53,9 +65,16 @@ const DuffelBookingFlow = ({ user }) => {
   });
 
   useEffect(() => {
+     // Save state to sessionStorage
+     if (confirmedBooking) sessionStorage.setItem('zamgo_confirmed', JSON.stringify(confirmedBooking));
+     if (offers.length > 0) sessionStorage.setItem('zamgo_offers', JSON.stringify(offers));
+     if (selectedOffer) sessionStorage.setItem('zamgo_selected_offer', JSON.stringify(selectedOffer));
+     if (passengerDetails.length > 0) sessionStorage.setItem('zamgo_passengers', JSON.stringify(passengerDetails));
+  }, [confirmedBooking, offers, selectedOffer, passengerDetails]);
+
+  useEffect(() => {
      // Auto trigger search if coming from homepage with populated mandatory fields
      if (location.state?.origin && location.state?.destination && location.state?.departure_date) {
-        // We synthesize an event-like object to satisfy fetchOffers(e)
         fetchOffers({ preventDefault: () => {} });
      }
   }, []);
@@ -73,11 +92,20 @@ const DuffelBookingFlow = ({ user }) => {
      else if (step === 'CONFIRMED') navigate('/order-confirmation', { replace: true });
   }, [step, navigate]);
 
-  const [offers, setOffers] = useState([]);
-  const [selectedOffer, setSelectedOffer] = useState(null);
+  const [offers, setOffers] = useState(() => {
+     const saved = sessionStorage.getItem('zamgo_offers');
+     return saved ? JSON.parse(saved) : [];
+  });
+  const [selectedOffer, setSelectedOffer] = useState(() => {
+     const saved = sessionStorage.getItem('zamgo_selected_offer');
+     return saved ? JSON.parse(saved) : null;
+  });
   const [expandedOfferId, setExpandedOfferId] = useState(null);
   const [processingOfferId, setProcessingOfferId] = useState(null);
-  const [passengerDetails, setPassengerDetails] = useState([]);
+  const [passengerDetails, setPassengerDetails] = useState(() => {
+     const saved = sessionStorage.getItem('zamgo_passengers');
+     return saved ? JSON.parse(saved) : [];
+  });
 
   // ── ANCILLARY STATE ───────────────────────────────────────────────────────
   const [ancillaryServices, setAncillaryServices] = useState([]); // [{ id, quantity }]
