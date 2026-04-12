@@ -8,13 +8,8 @@ export function resolveApiBaseURL() {
     return env.endsWith('/api') ? env : `${env}/api`;
   }
 
-  // Auto-detect: if running on localhost → use Vite proxy (relative path, no CORS)
-  // If running on production (zamgotravel.com or any other domain) → use Render
-  const isLocalhost =
-    window.location.hostname === 'localhost' ||
-    window.location.hostname === '127.0.0.1';
-
-  return isLocalhost ? '/api' : 'https://flight-1-ca15.onrender.com/api';
+  // Relative path works for both Proxy (Dev) and Same-Domain serving (Production)
+  return '/api';
 }
 
 const API = axios.create({ baseURL: resolveApiBaseURL(), timeout: 30000 });
