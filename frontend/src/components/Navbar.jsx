@@ -52,6 +52,7 @@ const Navbar = ({ user, logout }) => {
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-[30px]">
           <NavLink to="/" label="Flights" />
+          <NavLink to="/cargo" label="Cargo" />
           <ExternalLink href="#hotels" label="Hotels" />
           <ExternalLink href="#packages" label="Packages" />
           <NavLink to="/manage-booking" label="Manage Booking" />
@@ -101,6 +102,7 @@ const Navbar = ({ user, logout }) => {
       {isOpen && (
         <div className="md:hidden bg-white border-b border-gray-100 px-4 py-4 space-y-3 shadow-lg">
           <Link to="/" className="block text-gray-700 font-bold hover:text-orange-500">Flights</Link>
+          <Link to="/cargo" className="block text-gray-700 font-bold hover:text-orange-500">Cargo</Link>
           <a href="#hotels" className="block text-gray-700 font-bold hover:text-orange-500">Hotels</a>
           <a href="#packages" className="block text-gray-700 font-bold hover:text-orange-500">Packages</a>
           <Link to="/about" className="block text-gray-700 font-bold hover:text-orange-500">About</Link>

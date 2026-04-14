@@ -13,6 +13,7 @@ import Login from "./pages/Login";
 import About from "./pages/About";
 import ManageBooking from "./pages/ManageBooking";
 import DuffelBookingFlow from "./pages/DuffelBookingFlow";
+import CargoBooking from "./pages/CargoBooking";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import WhatsAppButton from "./components/WhatsAppButton";
@@ -32,6 +33,7 @@ function App() {
       <div className="flex-grow">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/cargo" element={<CargoBooking />} />
           <Route path="/results" element={<Results />} />
           <Route path="/manage-booking" element={<ManageBooking />} />
           <Route
