@@ -64,26 +64,26 @@ const CargoBooking = () => {
   const trackShipment = () => {
     const val = trackingInput.trim();
     if (!val) return;
-    setTrackResult('<span class="text-[#c9963a]">⏳ Searching...</span>');
+    setTrackResult('<span class="text-gold">⏳ Searching...</span>');
     setTimeout(() => {
       if (val.startsWith('ZGC')) {
         setTrackResult(`
-          <div class="bg-[#f0f7f0] border border-[#c3e6c3] rounded-[8px] p-[12px] text-[#0a0a0f]">
-            <strong class="text-[#1a6b6b]">✓ In Transit</strong><br>
-            <span class="text-[12px] text-[#7a7870]">Last update: Heathrow Cargo Hub → En route to Mogadishu</span>
+          <div class="bg-[#f0f7f0] border border-[#c3e6c3] rounded-lg p-3 text-ink">
+            <strong class="text-teal">✓ In Transit</strong><br>
+            <span class="text-xs text-muted">Last update: Heathrow Cargo Hub → En route to Mogadishu</span>
           </div>`);
       } else {
-        setTrackResult('<span class="text-[#c44b2b]">No shipment found. Check your reference number.</span>');
+        setTrackResult('<span class="text-rust">No shipment found. Check your reference number.</span>');
       }
     }, 1200);
   };
 
-  const progressFills = { 1: '33%', 2: '66%', 3: '100%' };
+  const progressFills = { 1: 'w-1/3', 2: 'w-2/3', 3: 'w-full' };
 
   return (
-    <div className="font-['DM_Sans',sans-serif] bg-[#f5f3ee] text-[#0a0a0f] min-h-screen overflow-x-hidden text-left">
+    <div className="font-dmsans bg-paper text-ink min-h-screen overflow-x-hidden text-left">
       {/* HERO */}
-      <div className="bg-[#0a0a0f] p-0 relative overflow-hidden min-h-[340px] flex flex-col">
+      <div className="bg-ink p-0 relative overflow-hidden min-h-[340px] flex flex-col">
         <div 
           className="absolute inset-0"
           style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(201,150,58,0.04) 40px, rgba(201,150,58,0.04) 41px), repeating-linear-gradient(-45deg, transparent, transparent 40px, rgba(201,150,58,0.04) 40px, rgba(201,150,58,0.04) 41px)' }}
@@ -93,151 +93,150 @@ const CargoBooking = () => {
           style={{ background: 'radial-gradient(circle, rgba(201,150,58,0.12) 0%, transparent 70%)' }}
         ></div>
         
-        <div className="px-6 py-8 md:px-12 md:py-14 relative z-10 flex-1 flex flex-col justify-center mt-10 md:mt-0">
-          <div className="inline-flex items-center gap-[8px] bg-[rgba(201,150,58,0.1)] border border-[rgba(201,150,58,0.25)] text-[#c9963a] px-[12px] py-[5px] rounded-[4px] text-[11px] font-semibold tracking-[1.5px] uppercase mb-[20px] w-fit">
+        <div className="px-6 py-12 md:px-12 md:py-14 relative z-10 flex-1 flex flex-col justify-center mt-10 md:mt-0">
+          <div className="inline-flex items-center gap-2 bg-gold/10 border border-gold/25 text-gold px-3 py-1.5 rounded text-[11px] font-semibold tracking-widest uppercase mb-5 w-fit">
             📦 International Cargo
           </div>
-          <h1 className="font-['Syne',sans-serif] text-[clamp(32px,5vw,52px)] font-extrabold text-white leading-[1.05] tracking-[-1.5px] mb-[16px]">
-            Ship Anywhere.<br /><em className="not-italic text-[#c9963a]">We Handle It.</em>
+          <h1 className="font-syne text-4xl md:text-5xl font-extrabold text-white leading-tight tracking-tight mb-4">
+            Ship Anywhere.<br /><em className="not-italic text-gold">We Handle It.</em>
           </h1>
-          <p className="text-[rgba(255,255,255,0.5)] text-[16px] max-w-[520px] leading-[1.6] font-light">
+          <p className="text-white/50 text-base max-w-[520px] leading-relaxed font-light">
             UK → Somalia · China → Somalia · Door-to-door delivery with tracking. Fast, reliable, affordable.
           </p>
         </div>
       </div>
 
       {/* ROUTES BAR */}
-      <div className="bg-[#c9963a] px-[24px] md:px-[48px] py-[12px] flex gap-[32px] items-center overflow-x-auto whitespace-nowrap">
-        <div className="flex items-center gap-[8px] text-[13px] font-semibold text-[#0a0a0f]">🇬🇧 UK → 🇸🇴 Somalia <span className="w-[6px] h-[6px] bg-[#0a0a0f] rounded-full opacity-40"></span> 5–7 days air</div>
-        <div className="flex items-center gap-[8px] text-[13px] font-semibold text-[#0a0a0f]">🇨🇳 China → 🇸🇴 Somalia <span className="w-[6px] h-[6px] bg-[#0a0a0f] rounded-full opacity-40"></span> 25–35 days sea</div>
-        <div className="flex items-center gap-[8px] text-[13px] font-semibold text-[#0a0a0f]">🇸🇴 Somalia → 🇬🇧 UK <span className="w-[6px] h-[6px] bg-[#0a0a0f] rounded-full opacity-40"></span> On request</div>
-        <div className="flex items-center gap-[8px] text-[13px] font-semibold text-[#0a0a0f]">📦 Door-to-door available</div>
+      <div className="bg-gold px-6 md:px-12 py-3 flex gap-8 items-center overflow-x-auto whitespace-nowrap scrollbar-hide">
+        <div className="flex items-center gap-2 text-sm font-semibold text-ink">🇬🇧 UK → 🇸🇴 Somalia <span className="w-1.5 h-1.5 bg-ink rounded-full opacity-40"></span> 5–7 days air</div>
+        <div className="flex items-center gap-2 text-sm font-semibold text-ink">🇨🇳 China → 🇸🇴 Somalia <span className="w-1.5 h-1.5 bg-ink rounded-full opacity-40"></span> 25–35 days sea</div>
+        <div className="flex items-center gap-2 text-sm font-semibold text-ink">🇸🇴 Somalia → 🇬🇧 UK <span className="w-1.5 h-1.5 bg-ink rounded-full opacity-40"></span> On request</div>
+        <div className="flex items-center gap-2 text-sm font-semibold text-ink">📦 Door-to-door available</div>
       </div>
 
       {/* MAIN */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-[24px] lg:gap-[48px] max-w-[1200px] mx-auto px-[24px] py-[24px] md:px-[48px] md:py-[48px]">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 lg:gap-12 max-w-7xl mx-auto px-6 py-6 md:px-12 md:py-12">
 
         {/* BOOKING FORM */}
-        <div className="bg-white rounded-[16px] border border-[#ddd9d0] overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.06)] h-fit">
-          <div className="h-[3px] bg-[#ddd9d0] relative overflow-hidden">
+        <div className="bg-white rounded-2xl border border-border overflow-hidden shadow-sm h-fit">
+          <div className="h-1 bg-border relative overflow-hidden">
             <div 
-              className="h-full bg-gradient-to-r from-[#c9963a] to-[#1a6b6b] transition-all duration-400 ease-out" 
-              style={{ width: !isSuccess ? progressFills[currentStep] : '100%' }}
+              className={`h-full bg-gradient-to-r from-gold to-teal transition-all duration-500 ease-out ${!isSuccess ? progressFills[currentStep] : 'w-full'}`} 
             ></div>
           </div>
 
-          <div className="px-[32px] py-[28px] border-b border-[#ddd9d0] flex items-center gap-[12px]">
-            <div className="w-[36px] h-[36px] bg-gradient-to-br from-[#1a6b6b] to-[#2a9090] rounded-[8px] flex items-center justify-center text-[18px]">📦</div>
-            <h2 className="font-['Syne',sans-serif] text-[18px] font-bold">Book Cargo</h2>
-            <div className="flex gap-[8px] ml-auto">
-              <div className={`w-[8px] h-[8px] rounded-full transition-all duration-300 ${!isSuccess && currentStep >= 1 ? (currentStep === 1 ? 'bg-[#c9963a]' : 'bg-[#1a6b6b]') : 'bg-[#1a6b6b]'}`}></div>
-              <div className={`w-[8px] h-[8px] rounded-full transition-all duration-300 ${!isSuccess && currentStep >= 2 ? (currentStep === 2 ? 'bg-[#c9963a]' : 'bg-[#1a6b6b]') : (isSuccess ? 'bg-[#1a6b6b]' : 'bg-[#ddd9d0]')}`}></div>
-              <div className={`w-[8px] h-[8px] rounded-full transition-all duration-300 ${!isSuccess && currentStep >= 3 ? (currentStep === 3 ? 'bg-[#c9963a]' : 'bg-[#1a6b6b]') : (isSuccess ? 'bg-[#1a6b6b]' : 'bg-[#ddd9d0]')}`}></div>
+          <div className="px-6 py-6 border-b border-border flex items-center gap-3">
+            <div className="w-9 h-9 bg-gradient-to-br from-teal to-teal-light rounded-lg flex items-center justify-center text-lg shadow-sm">📦</div>
+            <h2 className="font-syne text-lg font-bold text-ink">Book Cargo</h2>
+            <div className="flex gap-2 ml-auto">
+              <div className={`w-2 h-2 rounded-full transition-colors duration-300 ${!isSuccess && currentStep >= 1 ? (currentStep === 1 ? 'bg-gold' : 'bg-teal') : 'bg-teal'}`}></div>
+              <div className={`w-2 h-2 rounded-full transition-colors duration-300 ${!isSuccess && currentStep >= 2 ? (currentStep === 2 ? 'bg-gold' : 'bg-teal') : (isSuccess ? 'bg-teal' : 'bg-border')}`}></div>
+              <div className={`w-2 h-2 rounded-full transition-colors duration-300 ${!isSuccess && currentStep >= 3 ? (currentStep === 3 ? 'bg-gold' : 'bg-teal') : (isSuccess ? 'bg-teal' : 'bg-border')}`}></div>
             </div>
           </div>
 
           {!isSuccess ? (
-            <>
+            <div className={`p-6 md:p-8 transition-opacity duration-500 relative`}>
               {/* STEP 1: Route & Service */}
-              <div className={`p-[32px] ${currentStep === 1 ? 'block' : 'hidden'}`}>
-                <div className="font-['Syne',sans-serif] text-[20px] font-bold mb-[6px]">Choose Route & Service</div>
-                <div className="text-[#7a7870] text-[14px] mb-[28px]">Select your shipping route and preferred service</div>
+              <div className={`${currentStep === 1 ? 'block animate-in fade-in zoom-in-95 duration-500' : 'hidden'}`}>
+                <div className="font-syne text-xl font-bold mb-1.5 text-ink">Choose Route & Service</div>
+                <div className="text-muted text-sm mb-7">Select your shipping route and preferred service</div>
 
-                <label className="block text-[12px] font-semibold tracking-[0.5px] uppercase text-[#7a7870] mb-[8px]">SHIPPING ROUTE</label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-[12px] mb-[28px]">
-                  <div className={`border-2 rounded-[12px] px-[14px] py-[16px] cursor-pointer transition-all duration-200 text-center ${selectedRoute === 'uk-somalia' ? 'border-[#c9963a] bg-[rgba(201,150,58,0.05)]' : 'border-[#ddd9d0] bg-white hover:border-[#c9963a] hover:-translate-y-[2px]'}`} onClick={() => selectRoute('uk-somalia')}>
-                    <div className="text-[22px] mb-[8px] flex items-center justify-center gap-[4px]">🇬🇧 <span className="text-[14px] opacity-40">→</span> 🇸🇴</div>
-                    <div className="font-['Syne',sans-serif] text-[11px] font-bold tracking-[0.5px] uppercase text-[#0a0a0f]">UK → Somalia</div>
-                    <div className="text-[11px] text-[#7a7870] mt-[4px]">5–7 days air</div>
+                <label className="block text-xs font-semibold tracking-wider uppercase text-muted mb-2">SHIPPING ROUTE</label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-7">
+                  <div className={`border-2 rounded-xl px-3 py-4 cursor-pointer transition-all duration-300 text-center ${selectedRoute === 'uk-somalia' ? 'border-gold bg-gold/5' : 'border-border bg-white hover:border-gold hover:-translate-y-0.5'}`} onClick={() => selectRoute('uk-somalia')}>
+                    <div className="text-2xl mb-2 flex items-center justify-center gap-1">🇬🇧 <span className="text-sm opacity-40">→</span> 🇸🇴</div>
+                    <div className="font-syne text-[11px] font-bold tracking-wider uppercase text-ink">UK → Somalia</div>
+                    <div className="text-xs text-muted mt-1">5–7 days air</div>
                   </div>
-                  <div className={`border-2 rounded-[12px] px-[14px] py-[16px] cursor-pointer transition-all duration-200 text-center ${selectedRoute === 'china-somalia' ? 'border-[#c9963a] bg-[rgba(201,150,58,0.05)]' : 'border-[#ddd9d0] bg-white hover:border-[#c9963a] hover:-translate-y-[2px]'}`} onClick={() => selectRoute('china-somalia')}>
-                    <div className="text-[22px] mb-[8px] flex items-center justify-center gap-[4px]">🇨🇳 <span className="text-[14px] opacity-40">→</span> 🇸🇴</div>
-                    <div className="font-['Syne',sans-serif] text-[11px] font-bold tracking-[0.5px] uppercase text-[#0a0a0f]">China → Somalia</div>
-                    <div className="text-[11px] text-[#7a7870] mt-[4px]">25–35 days sea</div>
+                  <div className={`border-2 rounded-xl px-3 py-4 cursor-pointer transition-all duration-300 text-center ${selectedRoute === 'china-somalia' ? 'border-gold bg-gold/5' : 'border-border bg-white hover:border-gold hover:-translate-y-0.5'}`} onClick={() => selectRoute('china-somalia')}>
+                    <div className="text-2xl mb-2 flex items-center justify-center gap-1">🇨🇳 <span className="text-sm opacity-40">→</span> 🇸🇴</div>
+                    <div className="font-syne text-[11px] font-bold tracking-wider uppercase text-ink">China → Somalia</div>
+                    <div className="text-xs text-muted mt-1">25–35 days sea</div>
                   </div>
-                  <div className={`border-2 rounded-[12px] px-[14px] py-[16px] cursor-pointer transition-all duration-200 text-center ${selectedRoute === 'somalia-uk' ? 'border-[#c9963a] bg-[rgba(201,150,58,0.05)]' : 'border-[#ddd9d0] bg-white hover:border-[#c9963a] hover:-translate-y-[2px]'}`} onClick={() => selectRoute('somalia-uk')}>
-                    <div className="text-[22px] mb-[8px] flex items-center justify-center gap-[4px]">🇸🇴 <span className="text-[14px] opacity-40">→</span> 🇬🇧</div>
-                    <div className="font-['Syne',sans-serif] text-[11px] font-bold tracking-[0.5px] uppercase text-[#0a0a0f]">Somalia → UK</div>
-                    <div className="text-[11px] text-[#7a7870] mt-[4px]">Contact us</div>
+                  <div className={`border-2 rounded-xl px-3 py-4 cursor-pointer transition-all duration-300 text-center ${selectedRoute === 'somalia-uk' ? 'border-gold bg-gold/5' : 'border-border bg-white hover:border-gold hover:-translate-y-0.5'}`} onClick={() => selectRoute('somalia-uk')}>
+                    <div className="text-2xl mb-2 flex items-center justify-center gap-1">🇸🇴 <span className="text-sm opacity-40">→</span> 🇬🇧</div>
+                    <div className="font-syne text-[11px] font-bold tracking-wider uppercase text-ink">Somalia → UK</div>
+                    <div className="text-xs text-muted mt-1">Contact us</div>
                   </div>
                 </div>
 
-                <label className="block text-[12px] font-semibold tracking-[0.5px] uppercase text-[#7a7870] mb-[8px]">SERVICE TYPE</label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-[12px] mb-[28px]">
-                  <div className={`border-2 rounded-[12px] p-[20px] cursor-pointer transition-all duration-200 bg-white ${selectedService === 'air' ? 'border-[#1a6b6b] bg-[rgba(26,107,107,0.04)]' : 'border-[#ddd9d0] hover:border-[#1a6b6b]'}`} onClick={() => selectService('air', 4.5)}>
-                    <div className="text-[28px] mb-[10px]">✈️</div>
-                    <div className="font-['Syne',sans-serif] text-[14px] font-bold mb-[4px]">Air Freight</div>
-                    <div className="text-[12px] text-[#7a7870] leading-[1.5]">Fast delivery. Best for urgent or valuable items.</div>
-                    <div className="mt-[12px] text-[13px] font-semibold text-[#1a6b6b]">From £4.50/kg</div>
+                <label className="block text-xs font-semibold tracking-wider uppercase text-muted mb-2">SERVICE TYPE</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-7">
+                  <div className={`border-2 rounded-xl p-5 cursor-pointer transition-all duration-300 bg-white ${selectedService === 'air' ? 'border-teal bg-teal/5' : 'border-border hover:border-teal hover:shadow-sm'}`} onClick={() => selectService('air', 4.5)}>
+                    <div className="text-3xl mb-2.5">✈️</div>
+                    <div className="font-syne text-sm font-bold mb-1 text-ink">Air Freight</div>
+                    <div className="text-xs text-muted leading-relaxed">Fast delivery. Best for urgent or valuable items.</div>
+                    <div className="mt-3 text-sm font-semibold text-teal">From £4.50/kg</div>
                   </div>
-                  <div className={`border-2 rounded-[12px] p-[20px] cursor-pointer transition-all duration-200 bg-white ${selectedService === 'sea' ? 'border-[#1a6b6b] bg-[rgba(26,107,107,0.04)]' : 'border-[#ddd9d0] hover:border-[#1a6b6b]'}`} onClick={() => selectService('sea', 1.2)}>
-                    <div className="text-[28px] mb-[10px]">🚢</div>
-                    <div className="font-['Syne',sans-serif] text-[14px] font-bold mb-[4px]">Sea Freight</div>
-                    <div className="text-[12px] text-[#7a7870] leading-[1.5]">Economical for large shipments. Best for China route.</div>
-                    <div className="mt-[12px] text-[13px] font-semibold text-[#1a6b6b]">From £1.20/kg</div>
+                  <div className={`border-2 rounded-xl p-5 cursor-pointer transition-all duration-300 bg-white ${selectedService === 'sea' ? 'border-teal bg-teal/5' : 'border-border hover:border-teal hover:shadow-sm'}`} onClick={() => selectService('sea', 1.2)}>
+                    <div className="text-3xl mb-2.5">🚢</div>
+                    <div className="font-syne text-sm font-bold mb-1 text-ink">Sea Freight</div>
+                    <div className="text-xs text-muted leading-relaxed">Economical for large shipments. Best for China route.</div>
+                    <div className="mt-3 text-sm font-semibold text-teal">From £1.20/kg</div>
                   </div>
-                  <div className={`border-2 rounded-[12px] p-[20px] cursor-pointer transition-all duration-200 bg-white ${selectedService === 'express' ? 'border-[#1a6b6b] bg-[rgba(26,107,107,0.04)]' : 'border-[#ddd9d0] hover:border-[#1a6b6b]'}`} onClick={() => selectService('express', 8.5)}>
-                    <div className="text-[28px] mb-[10px]">⚡</div>
-                    <div className="font-['Syne',sans-serif] text-[14px] font-bold mb-[4px]">Express (FedEx)</div>
-                    <div className="text-[12px] text-[#7a7870] leading-[1.5]">3–5 days. Full tracking. Door-to-door.</div>
-                    <div className="mt-[12px] text-[13px] font-semibold text-[#1a6b6b]">From £8.50/kg</div>
+                  <div className={`border-2 rounded-xl p-5 cursor-pointer transition-all duration-300 bg-white ${selectedService === 'express' ? 'border-teal bg-teal/5' : 'border-border hover:border-teal hover:shadow-sm'}`} onClick={() => selectService('express', 8.5)}>
+                    <div className="text-3xl mb-2.5">⚡</div>
+                    <div className="font-syne text-sm font-bold mb-1 text-ink">Express (FedEx)</div>
+                    <div className="text-xs text-muted leading-relaxed">3–5 days. Full tracking. Door-to-door.</div>
+                    <div className="mt-3 text-sm font-semibold text-teal">From £8.50/kg</div>
                   </div>
-                  <div className={`border-2 rounded-[12px] p-[20px] cursor-pointer transition-all duration-200 bg-white ${selectedService === 'economy' ? 'border-[#1a6b6b] bg-[rgba(26,107,107,0.04)]' : 'border-[#ddd9d0] hover:border-[#1a6b6b]'}`} onClick={() => selectService('economy', 3.2)}>
-                    <div className="text-[28px] mb-[10px]">💼</div>
-                    <div className="font-['Syne',sans-serif] text-[14px] font-bold mb-[4px]">Economy (Aramex)</div>
-                    <div className="text-[12px] text-[#7a7870] leading-[1.5]">Budget-friendly. Reliable for non-urgent cargo.</div>
-                    <div className="mt-[12px] text-[13px] font-semibold text-[#1a6b6b]">From £3.20/kg</div>
+                  <div className={`border-2 rounded-xl p-5 cursor-pointer transition-all duration-300 bg-white ${selectedService === 'economy' ? 'border-teal bg-teal/5' : 'border-border hover:border-teal hover:shadow-sm'}`} onClick={() => selectService('economy', 3.2)}>
+                    <div className="text-3xl mb-2.5">💼</div>
+                    <div className="font-syne text-sm font-bold mb-1 text-ink">Economy (Aramex)</div>
+                    <div className="text-xs text-muted leading-relaxed">Budget-friendly. Reliable for non-urgent cargo.</div>
+                    <div className="mt-3 text-sm font-semibold text-teal">From £3.20/kg</div>
                   </div>
                 </div>
 
                 {/* PRICE CALCULATOR */}
-                <div className="bg-gradient-to-br from-[#0a0a0f] to-[#1a2a2a] rounded-[12px] p-[24px] mb-[24px] text-white">
-                  <h4 className="font-['Syne',sans-serif] text-[14px] font-bold text-[#c9963a] mb-[16px] tracking-[0.5px]">💰 INSTANT PRICE CALCULATOR</h4>
-                  <div className="flex gap-[12px] mb-[12px] items-center">
-                    <label className="text-[rgba(255,255,255,0.5)] w-[28px] text-right m-0 text-[11px] uppercase">KG</label>
-                    <input type="number" placeholder="Weight (kg)" value={weight} onChange={handleWeightChange} min="0.5" step="0.5" className="flex-1 bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.12)] text-white px-[16px] py-[12px] rounded-[8px] font-['DM_Sans',sans-serif] text-[14px] focus:border-[#c9963a] focus:shadow-none focus:outline-none placeholder-[rgba(255,255,255,0.3)] appearance-none" />
+                <div className="bg-gradient-to-br from-ink to-[#1a2a2a] rounded-xl p-6 mb-2 text-white shadow-lg">
+                  <h4 className="font-syne text-sm font-bold text-gold mb-4 tracking-wide">💰 INSTANT PRICE CALCULATOR</h4>
+                  <div className="flex gap-3 mb-3 items-center">
+                    <label className="text-white/50 w-7 text-right m-0 text-xs uppercase">KG</label>
+                    <input type="number" placeholder="Weight (kg)" value={weight} onChange={handleWeightChange} min="0.5" step="0.5" className="flex-1 bg-white/10 border border-white/10 text-white px-4 py-3 rounded-lg font-dmsans text-sm focus:border-gold focus:ring-0 outline-none placeholder-white/30 transition-colors" />
                   </div>
-                  <div className="bg-[rgba(201,150,58,0.1)] border border-[rgba(201,150,58,0.2)] rounded-[8px] p-[16px] mt-[16px] flex justify-between items-center">
+                  <div className="bg-gold/10 border border-gold/20 rounded-lg p-4 mt-4 flex justify-between items-center">
                     <div>
-                      <div className="text-[12px] text-[rgba(255,255,255,0.5)]">ESTIMATED TOTAL</div>
+                      <div className="text-xs text-white/50">ESTIMATED TOTAL</div>
                     </div>
-                    <div className="font-['Syne',sans-serif] text-[24px] font-extrabold text-[#c9963a]">{price}</div>
+                    <div className="font-syne text-2xl font-extrabold text-gold">{price}</div>
                   </div>
                 </div>
               </div>
 
               {/* STEP 2: Cargo Details */}
-              <div className={`p-[32px] ${currentStep === 2 ? 'block' : 'hidden'}`}>
-                <div className="font-['Syne',sans-serif] text-[20px] font-bold mb-[6px]">Cargo Details</div>
-                <div className="text-[#7a7870] text-[14px] mb-[28px]">Tell us what you're shipping</div>
+              <div className={`${currentStep === 2 ? 'block animate-in slide-in-from-right-4 duration-500' : 'hidden'}`}>
+                <div className="font-syne text-xl font-bold mb-1.5 text-ink">Cargo Details</div>
+                <div className="text-muted text-sm mb-7">Tell us what you're shipping</div>
 
-                <div className="mb-[20px]">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
+                <div className="mb-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[12px] font-semibold tracking-[0.5px] uppercase text-[#7a7870] mb-[8px]">Weight (KG)</label>
-                      <input type="number" placeholder="e.g. 25" min="0.5" step="0.5" value={weight} onChange={handleWeightChange} className="w-full px-[16px] py-[12px] border-[1.5px] border-[#ddd9d0] rounded-[8px] font-['DM_Sans',sans-serif] text-[14px] text-[#0a0a0f] bg-white transition-colors duration-200 outline-none focus:border-[#c9963a] focus:shadow-[0_0_0_3px_rgba(201,150,58,0.1)] appearance-none" />
+                      <label className="block text-xs font-semibold tracking-wider uppercase text-muted mb-2">Weight (KG)</label>
+                      <input type="number" placeholder="e.g. 25" min="0.5" step="0.5" value={weight} onChange={handleWeightChange} className="w-full px-4 py-3 border-[1.5px] border-border rounded-lg font-dmsans text-sm text-ink bg-white transition-shadow duration-300 outline-none focus:border-gold focus:ring-[3px] focus:ring-gold/10 appearance-none" />
                     </div>
                     <div>
-                      <label className="block text-[12px] font-semibold tracking-[0.5px] uppercase text-[#7a7870] mb-[8px]">Number of Parcels</label>
-                      <input type="number" placeholder="e.g. 3" min="1" className="w-full px-[16px] py-[12px] border-[1.5px] border-[#ddd9d0] rounded-[8px] font-['DM_Sans',sans-serif] text-[14px] text-[#0a0a0f] bg-white transition-colors duration-200 outline-none focus:border-[#c9963a] focus:shadow-[0_0_0_3px_rgba(201,150,58,0.1)] appearance-none" />
+                      <label className="block text-xs font-semibold tracking-wider uppercase text-muted mb-2">Number of Parcels</label>
+                      <input type="number" placeholder="e.g. 3" min="1" className="w-full px-4 py-3 border-[1.5px] border-border rounded-lg font-dmsans text-sm text-ink bg-white transition-shadow duration-300 outline-none focus:border-gold focus:ring-[3px] focus:ring-gold/10 appearance-none" />
                     </div>
                   </div>
                 </div>
 
-                <div className="mb-[20px]">
-                  <label className="block text-[12px] font-semibold tracking-[0.5px] uppercase text-[#7a7870] mb-[8px]">Contents / Description</label>
-                  <input type="text" placeholder="e.g. Clothes, Electronics, Food items" className="w-full px-[16px] py-[12px] border-[1.5px] border-[#ddd9d0] rounded-[8px] font-['DM_Sans',sans-serif] text-[14px] text-[#0a0a0f] bg-white transition-colors duration-200 outline-none focus:border-[#c9963a] focus:shadow-[0_0_0_3px_rgba(201,150,58,0.1)] appearance-none" />
+                <div className="mb-5">
+                  <label className="block text-xs font-semibold tracking-wider uppercase text-muted mb-2">Contents / Description</label>
+                  <input type="text" placeholder="e.g. Clothes, Electronics, Food items" className="w-full px-4 py-3 border-[1.5px] border-border rounded-lg font-dmsans text-sm text-ink bg-white transition-shadow duration-300 outline-none focus:border-gold focus:ring-[3px] focus:ring-gold/10" />
                 </div>
 
-                <div className="mb-[20px]">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
+                <div className="mb-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[12px] font-semibold tracking-[0.5px] uppercase text-[#7a7870] mb-[8px]">Declared Value (£)</label>
-                      <input type="number" placeholder="e.g. 500" className="w-full px-[16px] py-[12px] border-[1.5px] border-[#ddd9d0] rounded-[8px] font-['DM_Sans',sans-serif] text-[14px] text-[#0a0a0f] bg-white transition-colors duration-200 outline-none focus:border-[#c9963a] focus:shadow-[0_0_0_3px_rgba(201,150,58,0.1)] appearance-none" />
+                      <label className="block text-xs font-semibold tracking-wider uppercase text-muted mb-2">Declared Value (£)</label>
+                      <input type="number" placeholder="e.g. 500" className="w-full px-4 py-3 border-[1.5px] border-border rounded-lg font-dmsans text-sm text-ink bg-white transition-shadow duration-300 outline-none focus:border-gold focus:ring-[3px] focus:ring-gold/10 appearance-none" />
                     </div>
                     <div>
-                      <label className="block text-[12px] font-semibold tracking-[0.5px] uppercase text-[#7a7870] mb-[8px]">Add Insurance?</label>
-                      <select className="w-full px-[16px] py-[12px] border-[1.5px] border-[#ddd9d0] rounded-[8px] font-['DM_Sans',sans-serif] text-[14px] text-[#0a0a0f] bg-white transition-colors duration-200 outline-none focus:border-[#c9963a] focus:shadow-[0_0_0_3px_rgba(201,150,58,0.1)] appearance-none cursor-pointer">
+                      <label className="block text-xs font-semibold tracking-wider uppercase text-muted mb-2">Add Insurance?</label>
+                      <select className="w-full px-4 py-3 border-[1.5px] border-border rounded-lg font-dmsans text-sm text-ink bg-white transition-shadow duration-300 outline-none focus:border-gold focus:ring-[3px] focus:ring-gold/10 appearance-none cursor-pointer">
                         <option value="no">No Insurance</option>
                         <option value="basic">Basic (1% of value)</option>
                         <option value="full">Full Cover (2.5% of value)</option>
@@ -246,50 +245,50 @@ const CargoBooking = () => {
                   </div>
                 </div>
 
-                <div className="mb-[20px]">
-                  <label className="block text-[12px] font-semibold tracking-[0.5px] uppercase text-[#7a7870] mb-[8px]">Special Instructions (Optional)</label>
-                  <textarea placeholder="Fragile items, special handling, preferred delivery time..." className="w-full px-[16px] py-[12px] border-[1.5px] border-[#ddd9d0] rounded-[8px] font-['DM_Sans',sans-serif] text-[14px] text-[#0a0a0f] bg-white transition-colors duration-200 outline-none focus:border-[#c9963a] focus:shadow-[0_0_0_3px_rgba(201,150,58,0.1)] appearance-none min-h-[90px] resize-y"></textarea>
+                <div className="mb-2">
+                  <label className="block text-xs font-semibold tracking-wider uppercase text-muted mb-2">Special Instructions (Optional)</label>
+                  <textarea placeholder="Fragile items, special handling, preferred delivery time..." className="w-full px-4 py-3 border-[1.5px] border-border rounded-lg font-dmsans text-sm text-ink bg-white transition-shadow duration-300 outline-none focus:border-gold focus:ring-[3px] focus:ring-gold/10 min-h-[90px] resize-y"></textarea>
                 </div>
               </div>
 
               {/* STEP 3: Contact Info */}
-              <div className={`p-[32px] ${currentStep === 3 ? 'block' : 'hidden'}`}>
-                <div className="font-['Syne',sans-serif] text-[20px] font-bold mb-[6px]">Sender & Recipient</div>
-                <div className="text-[#7a7870] text-[14px] mb-[28px]">Enter contact details for both sides</div>
+              <div className={`${currentStep === 3 ? 'block animate-in slide-in-from-right-4 duration-500' : 'hidden'}`}>
+                <div className="font-syne text-xl font-bold mb-1.5 text-ink">Sender & Recipient</div>
+                <div className="text-muted text-sm mb-7">Enter contact details for both sides</div>
 
-                <div className="bg-[#f8f6f2] rounded-[10px] p-[18px] mb-[24px]">
-                  <div className="font-['Syne',sans-serif] text-[12px] font-bold text-uppercase tracking-[1px] text-[#7a7870] mb-[12px]">📤 Sender (UK)</div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px] mb-[12px]">
+                <div className="bg-[#f8f6f2] rounded-xl p-5 mb-6 shadow-sm border border-border/50">
+                  <div className="font-syne text-xs font-bold uppercase tracking-widest text-[#7a7870] mb-4">📤 Sender (UK)</div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <div>
-                      <label className="block text-[12px] font-semibold tracking-[0.5px] uppercase text-[#7a7870] mb-[8px]">Full Name</label>
-                      <input type="text" placeholder="Your name" className="w-full px-[16px] py-[12px] border-[1.5px] border-[#ddd9d0] rounded-[8px] font-['DM_Sans',sans-serif] text-[14px] text-[#0a0a0f] bg-white transition-colors duration-200 outline-none focus:border-[#c9963a] focus:shadow-[0_0_0_3px_rgba(201,150,58,0.1)] appearance-none" />
+                      <label className="block text-xs font-semibold tracking-wider uppercase text-muted mb-2">Full Name</label>
+                      <input type="text" placeholder="Your name" className="w-full px-4 py-3 border-[1.5px] border-border rounded-lg font-dmsans text-sm text-ink bg-white transition-shadow duration-300 outline-none focus:border-gold focus:ring-[3px] focus:ring-gold/10" />
                     </div>
                     <div>
-                      <label className="block text-[12px] font-semibold tracking-[0.5px] uppercase text-[#7a7870] mb-[8px]">Phone</label>
-                      <input type="tel" placeholder="+44 7xxx xxxxxx" className="w-full px-[16px] py-[12px] border-[1.5px] border-[#ddd9d0] rounded-[8px] font-['DM_Sans',sans-serif] text-[14px] text-[#0a0a0f] bg-white transition-colors duration-200 outline-none focus:border-[#c9963a] focus:shadow-[0_0_0_3px_rgba(201,150,58,0.1)] appearance-none" />
+                      <label className="block text-xs font-semibold tracking-wider uppercase text-muted mb-2">Phone</label>
+                      <input type="tel" placeholder="+44 7xxx xxxxxx" className="w-full px-4 py-3 border-[1.5px] border-border rounded-lg font-dmsans text-sm text-ink bg-white transition-shadow duration-300 outline-none focus:border-gold focus:ring-[3px] focus:ring-gold/10" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-[12px] font-semibold tracking-[0.5px] uppercase text-[#7a7870] mb-[8px]">Collection Address</label>
-                    <input type="text" placeholder="Your UK address" className="w-full px-[16px] py-[12px] border-[1.5px] border-[#ddd9d0] rounded-[8px] font-['DM_Sans',sans-serif] text-[14px] text-[#0a0a0f] bg-white transition-colors duration-200 outline-none focus:border-[#c9963a] focus:shadow-[0_0_0_3px_rgba(201,150,58,0.1)] appearance-none" />
+                    <label className="block text-xs font-semibold tracking-wider uppercase text-muted mb-2">Collection Address</label>
+                    <input type="text" placeholder="Your UK address" className="w-full px-4 py-3 border-[1.5px] border-border rounded-lg font-dmsans text-sm text-ink bg-white transition-shadow duration-300 outline-none focus:border-gold focus:ring-[3px] focus:ring-gold/10" />
                   </div>
                 </div>
 
-                <div className="bg-[#f0f7f7] rounded-[10px] p-[18px] mb-[24px]">
-                  <div className="font-['Syne',sans-serif] text-[12px] font-bold text-uppercase tracking-[1px] text-[#1a6b6b] mb-[12px]">📥 Recipient (Somalia)</div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px] mb-[12px]">
+                <div className="bg-[#f0f7f7] rounded-xl p-5 mb-6 shadow-sm border border-teal/20">
+                  <div className="font-syne text-xs font-bold uppercase tracking-widest text-teal mb-4">📥 Recipient (Somalia)</div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <div>
-                      <label className="block text-[12px] font-semibold tracking-[0.5px] uppercase text-[#7a7870] mb-[8px]">Full Name</label>
-                      <input type="text" placeholder="Recipient name" className="w-full px-[16px] py-[12px] border-[1.5px] border-[#ddd9d0] rounded-[8px] font-['DM_Sans',sans-serif] text-[14px] text-[#0a0a0f] bg-white transition-colors duration-200 outline-none focus:border-[#c9963a] focus:shadow-[0_0_0_3px_rgba(201,150,58,0.1)] appearance-none" />
+                      <label className="block text-xs font-semibold tracking-wider uppercase text-muted mb-2">Full Name</label>
+                      <input type="text" placeholder="Recipient name" className="w-full px-4 py-3 border-[1.5px] border-border rounded-lg font-dmsans text-sm text-ink bg-white transition-shadow duration-300 outline-none focus:border-gold focus:ring-[3px] focus:ring-gold/10" />
                     </div>
                     <div>
-                      <label className="block text-[12px] font-semibold tracking-[0.5px] uppercase text-[#7a7870] mb-[8px]">Phone (Somali number)</label>
-                      <input type="tel" placeholder="+252 6xx xxxxxx" className="w-full px-[16px] py-[12px] border-[1.5px] border-[#ddd9d0] rounded-[8px] font-['DM_Sans',sans-serif] text-[14px] text-[#0a0a0f] bg-white transition-colors duration-200 outline-none focus:border-[#c9963a] focus:shadow-[0_0_0_3px_rgba(201,150,58,0.1)] appearance-none" />
+                      <label className="block text-xs font-semibold tracking-wider uppercase text-muted mb-2">Phone (Somali number)</label>
+                      <input type="tel" placeholder="+252 6xx xxxxxx" className="w-full px-4 py-3 border-[1.5px] border-border rounded-lg font-dmsans text-sm text-ink bg-white transition-shadow duration-300 outline-none focus:border-gold focus:ring-[3px] focus:ring-gold/10" />
                     </div>
                   </div>
-                  <div className="mb-[12px]">
-                    <label className="block text-[12px] font-semibold tracking-[0.5px] uppercase text-[#7a7870] mb-[8px]">City</label>
-                    <select className="w-full px-[16px] py-[12px] border-[1.5px] border-[#ddd9d0] rounded-[8px] font-['DM_Sans',sans-serif] text-[14px] text-[#0a0a0f] bg-white transition-colors duration-200 outline-none focus:border-[#c9963a] focus:shadow-[0_0_0_3px_rgba(201,150,58,0.1)] appearance-none cursor-pointer">
+                  <div className="mb-4">
+                    <label className="block text-xs font-semibold tracking-wider uppercase text-muted mb-2">City</label>
+                    <select className="w-full px-4 py-3 border-[1.5px] border-border rounded-lg font-dmsans text-sm text-ink bg-white transition-shadow duration-300 outline-none focus:border-gold focus:ring-[3px] focus:ring-gold/10 appearance-none cursor-pointer">
                       <option value="">Select city</option>
                       <option>Mogadishu</option>
                       <option>Hargeisa</option>
@@ -301,48 +300,47 @@ const CargoBooking = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[12px] font-semibold tracking-[0.5px] uppercase text-[#7a7870] mb-[8px]">Delivery Address / Area</label>
-                    <input type="text" placeholder="Area / street name" className="w-full px-[16px] py-[12px] border-[1.5px] border-[#ddd9d0] rounded-[8px] font-['DM_Sans',sans-serif] text-[14px] text-[#0a0a0f] bg-white transition-colors duration-200 outline-none focus:border-[#c9963a] focus:shadow-[0_0_0_3px_rgba(201,150,58,0.1)] appearance-none" />
+                    <label className="block text-xs font-semibold tracking-wider uppercase text-muted mb-2">Delivery Address / Area</label>
+                    <input type="text" placeholder="Area / street name" className="w-full px-4 py-3 border-[1.5px] border-border rounded-lg font-dmsans text-sm text-ink bg-white transition-shadow duration-300 outline-none focus:border-gold focus:ring-[3px] focus:ring-gold/10" />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-[12px] font-semibold tracking-[0.5px] uppercase text-[#7a7870] mb-[8px]">Your Email (for confirmation)</label>
-                  <input type="email" placeholder="your@email.com" className="w-full px-[16px] py-[12px] border-[1.5px] border-[#ddd9d0] rounded-[8px] font-['DM_Sans',sans-serif] text-[14px] text-[#0a0a0f] bg-white transition-colors duration-200 outline-none focus:border-[#c9963a] focus:shadow-[0_0_0_3px_rgba(201,150,58,0.1)] appearance-none" />
+                <div className="mb-2">
+                  <label className="block text-xs font-semibold tracking-wider uppercase text-muted mb-2">Your Email (for confirmation)</label>
+                  <input type="email" placeholder="your@email.com" className="w-full px-4 py-3 border-[1.5px] border-border rounded-lg font-dmsans text-sm text-ink bg-white transition-shadow duration-300 outline-none focus:border-gold focus:ring-[3px] focus:ring-gold/10" />
                 </div>
               </div>
-            </>
+            </div>
           ) : (
             /* SUCCESS */
-            <div className="p-[48px_32px] text-center block">
-              <div className="w-[72px] h-[72px] bg-gradient-to-br from-[#1a6b6b] to-[#2a9090] rounded-full flex items-center justify-center text-[32px] mx-auto mb-[24px] text-white
-                animate-[popIn_0.5s_cubic-bezier(0.175,0.885,0.32,1.275)]">✓</div>
-              <h3 className="font-['Syne',sans-serif] text-[22px] font-extrabold mb-[8px]">Booking Confirmed!</h3>
-              <p className="text-[#7a7870] text-[14px] mb-[24px] leading-[1.6]">Your cargo booking has been received. We'll contact you within 2 hours to confirm pickup and payment details.</p>
-              <div className="bg-[#f5f3ee] border border-[#ddd9d0] rounded-[10px] px-[24px] py-[16px] inline-block mb-[24px]">
-                <div className="text-[11px] uppercase tracking-[1px] text-[#7a7870] font-semibold mb-[4px]">Booking Reference</div>
-                <div className="font-['Syne',sans-serif] text-[22px] font-extrabold tracking-[2px] text-[#0a0a0f]">{bookingRef}</div>
+            <div className="py-12 px-6 md:px-12 text-center animate-in zoom-in-95 fade-in duration-500">
+              <div className="w-20 h-20 bg-gradient-to-br from-teal to-teal-light rounded-full flex items-center justify-center text-4xl mx-auto mb-6 text-white shadow-lg">✓</div>
+              <h3 className="font-syne text-2xl md:text-3xl font-extrabold mb-3 text-ink">Booking Confirmed!</h3>
+              <p className="text-muted text-sm mb-6 leading-relaxed max-w-md mx-auto">Your cargo booking has been received. We'll contact you within 2 hours to confirm pickup and payment details.</p>
+              <div className="bg-paper border border-border rounded-xl px-6 py-5 inline-block mb-6 shadow-inner">
+                <div className="text-xs uppercase tracking-widest text-muted font-bold mb-1.5">Booking Reference</div>
+                <div className="font-syne text-2xl font-extrabold tracking-[2px] text-ink">{bookingRef}</div>
               </div>
-              <p className="text-[12px] text-[#7a7870]">📱 You'll receive a WhatsApp confirmation shortly</p>
+              <p className="text-xs text-muted flex items-center justify-center gap-2">📱 You'll receive a WhatsApp confirmation shortly</p>
             </div>
           )}
 
           {/* BUTTONS */}
-          <div className="flex gap-[12px] px-[32px] py-[24px] border-t border-[#ddd9d0] bg-[#fafaf8]">
+          <div className="flex gap-3 px-6 py-5 md:px-8 bg-[#fafaf8] border-t border-border">
             {!isSuccess ? (
               <>
                 {currentStep > 1 && (
-                  <button className="px-[20px] py-[13px] border-[1.5px] border-[#ddd9d0] text-[#7a7870] bg-transparent rounded-[8px] font-['Syne',sans-serif] text-[14px] font-bold tracking-[0.3px] hover:border-[#0a0a0f] hover:text-[#0a0a0f] transition-colors" onClick={prevStep}>← Back</button>
+                  <button className="px-5 py-3.5 border-[1.5px] border-border text-muted bg-transparent rounded-lg font-syne text-sm font-bold tracking-wide hover:border-ink hover:text-ink transition-colors" onClick={prevStep}>← Back</button>
                 )}
                 <button 
-                  className={`flex-1 px-[28px] py-[13px] text-white rounded-[8px] font-['Syne',sans-serif] text-[14px] font-bold tracking-[0.3px] transition-all hover:-translate-y-[1px] shadow-[0_6px_20px_rgba(26,107,107,0)] hover:shadow-[0_6px_20px_rgba(26,107,107,0.3)] border-none cursor-pointer ${currentStep === 3 ? 'bg-[#1a6b6b]' : 'bg-[#0a0a0f] hover:bg-[#1a6b6b]'}`}
+                  className={`flex-1 px-7 py-3.5 text-white rounded-lg font-syne text-sm font-bold tracking-wide transition-all duration-300 shadow-md border-none cursor-pointer hover:-translate-y-0.5 ${currentStep === 3 ? 'bg-teal hover:shadow-teal/30 hover:shadow-lg' : 'bg-ink hover:bg-teal hover:shadow-teal/30 hover:shadow-lg'}`}
                   onClick={nextStep}
                 >
                   {currentStep === 3 ? '✓ Confirm Booking' : 'Continue →'}
                 </button>
               </>
             ) : (
-              <button className="flex-1 px-[28px] py-[13px] bg-[#1a6b6b] text-white rounded-[8px] font-['Syne',sans-serif] text-[14px] font-bold tracking-[0.3px] transition-all hover:-translate-y-[1px] shadow-[0_6px_20px_rgba(26,107,107,0)] hover:shadow-[0_6px_20px_rgba(26,107,107,0.3)] border-none cursor-pointer" onClick={resetForm}>
+              <button className="flex-1 px-7 py-3.5 bg-teal text-white rounded-lg font-syne text-sm font-bold tracking-wide transition-all duration-300 shadow-md hover:-translate-y-0.5 hover:shadow-teal/30 hover:shadow-lg border-none cursor-pointer" onClick={resetForm}>
                 📦 Book Another Shipment
               </button>
             )}
@@ -350,104 +348,104 @@ const CargoBooking = () => {
         </div>
 
         {/* SIDEBAR */}
-        <div className="flex flex-col gap-[20px] hidden lg:flex">
+        <div className="flex-col gap-6 hidden lg:flex">
 
           {/* TRACK */}
-          <div className="bg-white border border-[#ddd9d0] rounded-[16px] overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.05)]">
-            <div className="px-[24px] py-[18px] border-b border-[#ddd9d0] flex items-center gap-[10px]">
-              <span className="text-[16px]">🔍</span>
-              <h3 className="font-['Syne',sans-serif] text-[14px] font-bold">Track Shipment</h3>
+          <div className="bg-white border border-border rounded-2xl overflow-hidden shadow-sm">
+            <div className="px-6 py-4 border-b border-border flex items-center gap-3">
+              <span className="text-lg">🔍</span>
+              <h3 className="font-syne text-sm font-bold text-ink">Track Shipment</h3>
             </div>
-            <div className="px-[24px] py-[20px]">
-              <div className="flex gap-[8px]">
+            <div className="p-6">
+              <div className="flex gap-2">
                 <input 
                   type="text" 
                   placeholder="Enter tracking number" 
                   value={trackingInput}
                   onChange={(e) => setTrackingInput(e.target.value)}
-                  className="flex-1 px-[16px] py-[12px] border-[1.5px] border-[#ddd9d0] rounded-[8px] font-['DM_Sans',sans-serif] text-[13px] text-[#0a0a0f] outline-none focus:border-[#c9963a] transition-all"
+                  className="flex-1 px-4 py-3 border-[1.5px] border-border rounded-lg font-dmsans text-[13px] text-ink outline-none focus:border-gold transition-colors"
                 />
-                <button onClick={trackShipment} className="px-[18px] py-[12px] bg-[#0a0a0f] hover:bg-[#1a6b6b] text-white border-none rounded-[8px] font-['Syne',sans-serif] text-[13px] font-bold whitespace-nowrap transition-colors cursor-pointer">Track</button>
+                <button onClick={trackShipment} className="px-5 py-3 bg-ink hover:bg-teal text-white border-none rounded-lg font-syne text-[13px] font-bold whitespace-nowrap transition-colors cursor-pointer">Track</button>
               </div>
               {trackResult && (
-                <div className="mt-[12px] text-[13px] text-[#7a7870]" dangerouslySetInnerHTML={{ __html: trackResult }}></div>
+                <div className="mt-3 text-[13px] text-muted animate-in fade-in duration-300" dangerouslySetInnerHTML={{ __html: trackResult }}></div>
               )}
             </div>
           </div>
 
           {/* PROVIDERS */}
-          <div className="bg-white border border-[#ddd9d0] rounded-[16px] overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.05)]">
-            <div className="px-[24px] py-[18px] border-b border-[#ddd9d0] flex items-center gap-[10px]">
-              <span className="text-[16px]">🤝</span>
-              <h3 className="font-['Syne',sans-serif] text-[14px] font-bold">Our Partners</h3>
+          <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
+            <div className="px-6 py-4 border-b border-border flex items-center gap-3">
+              <span className="text-lg">🤝</span>
+              <h3 className="font-syne text-sm font-bold text-ink">Our Partners</h3>
             </div>
-            <div className="px-[24px] py-[20px]">
-              <div className="flex items-center gap-[14px] py-[12px] border-b border-[#ddd9d0] pt-0">
-                <div className="w-[44px] h-[44px] bg-[#4d148c] text-[#ff6600] rounded-[10px] flex items-center justify-center font-extrabold text-[12px] tracking-[0.5px] shrink-0">FedEx</div>
+            <div className="p-6">
+              <div className="flex items-center gap-3.5 pb-4 mb-4 border-b border-border/60">
+                <div className="w-11 h-11 bg-[#4d148c] text-[#ff6600] rounded-xl flex items-center justify-center font-extrabold text-[11px] tracking-wider shrink-0 shadow-sm">FedEx</div>
                 <div className="flex-1">
-                  <div className="font-['Syne',sans-serif] text-[13px] font-bold mb-[2px]">FedEx International</div>
-                  <div className="text-[11px] text-[#7a7870]">UK → Somalia · Express</div>
+                  <div className="font-syne text-[13px] font-bold mb-0.5 text-ink">FedEx International</div>
+                  <div className="text-[11px] text-muted">UK → Somalia · Express</div>
                 </div>
-                <span className="text-[10px] font-bold px-[8px] py-[3px] bg-[rgba(196,75,43,0.1)] text-[#c44b2b] rounded-[4px] tracking-[0.5px] uppercase">Fast</span>
+                <span className="text-[10px] font-bold px-2 py-1 bg-rust/10 text-rust rounded tracking-wider uppercase">Fast</span>
               </div>
-              <div className="flex items-center gap-[14px] py-[12px] border-b border-[#ddd9d0]">
-                <div className="w-[44px] h-[44px] bg-[#e8002d] text-white rounded-[10px] flex items-center justify-center font-extrabold text-[12px] tracking-[0.5px] shrink-0">ARX</div>
+              <div className="flex items-center gap-3.5 pb-4 mb-4 border-b border-border/60">
+                <div className="w-11 h-11 bg-[#e8002d] text-white rounded-xl flex items-center justify-center font-extrabold text-[11px] tracking-wider shrink-0 shadow-sm">ARX</div>
                 <div className="flex-1">
-                  <div className="font-['Syne',sans-serif] text-[13px] font-bold mb-[2px]">Aramex</div>
-                  <div className="text-[11px] text-[#7a7870]">UK → Somalia · Economy</div>
+                  <div className="font-syne text-[13px] font-bold mb-0.5 text-ink">Aramex</div>
+                  <div className="text-[11px] text-muted">UK → Somalia · Economy</div>
                 </div>
-                <span className="text-[10px] font-bold px-[8px] py-[3px] bg-[rgba(26,107,107,0.1)] text-[#1a6b6b] rounded-[4px] tracking-[0.5px] uppercase">Value</span>
+                <span className="text-[10px] font-bold px-2 py-1 bg-teal/10 text-teal rounded tracking-wider uppercase">Value</span>
               </div>
-              <div className="flex items-center gap-[14px] py-[12px] pb-0 border-none">
-                <div className="w-[44px] h-[44px] bg-[#006b3f] text-[#ffd700] rounded-[10px] flex items-center justify-center font-extrabold text-[12px] tracking-[0.5px] shrink-0">TWK</div>
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 bg-[#006b3f] text-[#ffd700] rounded-xl flex items-center justify-center font-extrabold text-[11px] tracking-wider shrink-0 shadow-sm">TWK</div>
                 <div className="flex-1">
-                  <div className="font-['Syne',sans-serif] text-[13px] font-bold mb-[2px]">Tawakal Express</div>
-                  <div className="text-[11px] text-[#7a7870]">UK → Somalia · Local</div>
+                  <div className="font-syne text-[13px] font-bold mb-0.5 text-ink">Tawakal Express</div>
+                  <div className="text-[11px] text-muted">UK → Somalia · Local</div>
                 </div>
-                <span className="text-[10px] font-bold px-[8px] py-[3px] bg-[rgba(201,150,58,0.12)] text-[#c9963a] rounded-[4px] tracking-[0.5px] uppercase">Somali</span>
+                <span className="text-[10px] font-bold px-2 py-1 bg-gold/15 text-gold rounded tracking-wider uppercase">Somali</span>
               </div>
             </div>
           </div>
 
           {/* TIPS */}
-          <div className="bg-white border border-[#ddd9d0] rounded-[16px] overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.05)]">
-            <div className="px-[24px] py-[18px] border-b border-[#ddd9d0] flex items-center gap-[10px]">
-              <span className="text-[16px]">💡</span>
-              <h3 className="font-['Syne',sans-serif] text-[14px] font-bold">Shipping Tips</h3>
+          <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
+            <div className="px-6 py-4 border-b border-border flex items-center gap-3">
+              <span className="text-lg">💡</span>
+              <h3 className="font-syne text-sm font-bold text-ink">Shipping Tips</h3>
             </div>
-            <div className="px-[24px] py-[20px]">
-              <div className="flex gap-[12px] mb-[16px] pb-[16px] border-b border-[#ddd9d0]">
-                <div className="w-[32px] h-[32px] rounded-[8px] bg-[#f5f3ee] flex items-center justify-center shrink-0 text-[16px]">📋</div>
-                <div className="text-[13px] leading-[1.5] text-[#7a7870]"><strong className="text-[#0a0a0f] font-semibold">Always declare contents.</strong> Undeclared items may be held at customs and cause delays.</div>
+            <div className="p-6">
+              <div className="flex gap-3.5 mb-4 pb-4 border-b border-border/60">
+                <div className="w-8 h-8 rounded-lg bg-paper flex items-center justify-center shrink-0 text-base">📋</div>
+                <div className="text-[13px] leading-relaxed text-muted mt-1"><strong className="text-ink font-semibold">Always declare contents.</strong> Undeclared items may be held at customs and cause delays.</div>
               </div>
-              <div className="flex gap-[12px] mb-[16px] pb-[16px] border-b border-[#ddd9d0]">
-                <div className="w-[32px] h-[32px] rounded-[8px] bg-[#f5f3ee] flex items-center justify-center shrink-0 text-[16px]">⚖️</div>
-                <div className="text-[13px] leading-[1.5] text-[#7a7870]"><strong className="text-[#0a0a0f] font-semibold">Volumetric weight</strong> may apply for large, light packages. We'll calculate for you.</div>
+              <div className="flex gap-3.5 mb-4 pb-4 border-b border-border/60">
+                <div className="w-8 h-8 rounded-lg bg-paper flex items-center justify-center shrink-0 text-base">⚖️</div>
+                <div className="text-[13px] leading-relaxed text-muted mt-1"><strong className="text-ink font-semibold">Volumetric weight</strong> may apply for large, light packages. We'll calculate for you.</div>
               </div>
-              <div className="flex gap-[12px] mb-[16px] pb-[16px] border-b border-[#ddd9d0]">
-                <div className="w-[32px] h-[32px] rounded-[8px] bg-[#f5f3ee] flex items-center justify-center shrink-0 text-[16px]">🚫</div>
-                <div className="text-[13px] leading-[1.5] text-[#7a7870]"><strong className="text-[#0a0a0f] font-semibold">Prohibited:</strong> Cash, khat, weapons, chemicals. Full list on request.</div>
+              <div className="flex gap-3.5 mb-4 pb-4 border-b border-border/60">
+                <div className="w-8 h-8 rounded-lg bg-paper flex items-center justify-center shrink-0 text-base">🚫</div>
+                <div className="text-[13px] leading-relaxed text-muted mt-1"><strong className="text-ink font-semibold">Prohibited:</strong> Cash, khat, weapons, chemicals. Full list on request.</div>
               </div>
-              <div className="flex gap-[12px] mb-0 pb-0 border-none">
-                <div className="w-[32px] h-[32px] rounded-[8px] bg-[#f5f3ee] flex items-center justify-center shrink-0 text-[16px]">📦</div>
-                <div className="text-[13px] leading-[1.5] text-[#7a7870]"><strong className="text-[#0a0a0f] font-semibold">Packing service</strong> available from £10. We box and label everything for you.</div>
+              <div className="flex gap-3.5">
+                <div className="w-8 h-8 rounded-lg bg-paper flex items-center justify-center shrink-0 text-base">📦</div>
+                <div className="text-[13px] leading-relaxed text-muted mt-1"><strong className="text-ink font-semibold">Packing service</strong> available from £10. We box and label everything for you.</div>
               </div>
             </div>
           </div>
 
           {/* CONTACT LISTING */}
-          <div className="bg-[#0a0a0f] rounded-[16px] p-[24px] text-center text-white">
-            <div className="text-[28px] mb-[10px]">📞</div>
-            <div className="font-['Syne',sans-serif] text-[15px] font-bold mb-[6px]">Need Help?</div>
-            <div className="text-[13px] text-[rgba(255,255,255,0.5)] mb-[16px]">Our team speaks Somali & English</div>
-            <a href="https://wa.me/447000000000" className="block bg-[#25D366] text-white p-[12px] rounded-[8px] font-['Syne',sans-serif] text-[13px] font-bold mb-[8px] no-underline">💬 WhatsApp Us</a>
-            <a href="tel:+44700000000" className="block bg-[rgba(255,255,255,0.08)] text-white p-[12px] rounded-[8px] font-['Syne',sans-serif] text-[13px] font-bold no-underline">📞 Call Us</a>
+          <div className="bg-ink rounded-2xl p-6 text-center text-white shadow-lg">
+            <div className="text-3xl mb-3">📞</div>
+            <div className="font-syne text-base font-bold mb-1.5">Need Help?</div>
+            <div className="text-[13px] text-white/60 mb-5 font-medium">Our team speaks Somali & English</div>
+            <a href="https://wa.me/447000000000" className="block bg-[#25D366] text-white p-3.5 rounded-xl font-syne text-[13px] font-bold mb-3 hover:bg-[#20ba56] transition-colors shadow-sm">💬 WhatsApp Us</a>
+            <a href="tel:+44700000000" className="block bg-white/10 text-white p-3.5 rounded-xl font-syne text-[13px] font-bold hover:bg-white/20 transition-colors">📞 Call Us</a>
           </div>
         </div>
       </div>
       
       {/* WHATSAPP FLOAT */}
-      <a href="https://wa.me/447000000000" title="WhatsApp Us" className="fixed bottom-[24px] right-[24px] bg-[#25D366] text-white w-[56px] h-[56px] rounded-full flex items-center justify-center text-[26px] shadow-[0_4px_20px_rgba(37,211,102,0.4)] hover:scale-110 transition-transform cursor-pointer z-[100] no-underline">💬</a>
+      <a href="https://wa.me/447000000000" title="WhatsApp Us" className="fixed bottom-6 right-6 bg-[#25D366] text-white w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-[0_4px_20px_rgba(37,211,102,0.4)] hover:scale-110 transition-transform cursor-pointer z-[100]">💬</a>
     </div>
   );
 };
